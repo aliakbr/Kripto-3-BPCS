@@ -109,7 +109,7 @@ class BitPlaneProcessing:
                 bit_plane = self.generateBitplaneArray(block, i)
                 if self.calculateComplexity(bit_plane) > self.ALPHA_TRESHOLD:
                     count += 1
-        return count*64/8
+        return (count-1)*64/8 # -1 for message saving bitplane
 
     def bitplaneToBlocks(self, bitplanes):
         """
@@ -152,14 +152,12 @@ class BitPlaneProcessing:
         """
         WIDTH = self.size[0]
         HEIGTH = self.size[1]
-        print (WIDTH)
-        print (HEIGTH)
-        img = Image.new('RGB', (HEIGTH, WIDTH))
+        img = Image.new('RGB', (WIDTH, HEIGTH))
         img_data = img.load()
         for x, y, color in rgb_data:
-            img_data[x,y] = color
+            img_data[y,x] = color
         if self.format_file == "jpg":
             format_file = "JPEG"
         else:
             format_file = self.format_file
-        img.save(image_file_output+"."+self.format_file, format_file)
+        img.save(image_file_output)

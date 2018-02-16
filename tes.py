@@ -19,4 +19,4 @@
 from bpcs import BPCS
 
 alg = BPCS()
-alg.encrypt("tes.jpg", "input.txt")
+alg.encrypt("tes.jpg", "input.txt", "output.jpg")

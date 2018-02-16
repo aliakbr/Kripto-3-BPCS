@@ -5,7 +5,7 @@ from bitplane import BitPlaneProcessing
 bp = BitPlaneProcessing()
 
 class BPCS:
-    def encrypt(self, img_file, input_file):
+    def encrypt(self, img_file, input_file, output_file):
         # Create bitplanes of image img_file
         img_bin_ar = bp.getBinArrayTrueColor(img_file)
         blocks = bp.sliceToBlocks(img_bin_ar)
@@ -33,7 +33,8 @@ class BPCS:
         for bitplane, complexity in bitplanes_comp:
             if complexity > bp.ALPHA_TRESHOLD and (i != len(input_blocks)):
                 if count == 0:
-                    msg_len = ''.join('{0:064b}'.format(msg_size)) #padded to 64b
+                    # Change first bit plane to save message length
+                    msg_len = ''.join('{0:064b}'.format(msg_size))
                     encrypted_bitplane = msg_len
                     encrypted_bitplanes.append(encrypted_bitplane)
                     count += 1
@@ -45,4 +46,4 @@ class BPCS:
         blocks = bp.bitplaneToBlocks(encrypted_bitplanes)
         img_data = bp.blocksToRGBData(blocks)
         print (img_data)
-        bp.dataToImage(img_data, "output")
+        bp.dataToImage(img_data, output_file)
