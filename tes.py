@@ -1,10 +1,22 @@
-from bitplane import BitPlaneProcessing
+# from bitplane import BitPlaneProcessing
+#
+# bp = BitPlaneProcessing()
+# # a = bp.getBinArrayTrueColor("tes.jpg")
+# # sliced_a = bp.sliceToBlocks(a)
+# # bit_planes = []
+# # for a in sliced_a:
+# #     for i in range(24):
+# #         bit_planes.append(bp.generateBitplaneArray(a, i))
+# #
+# # bit_planes_comp = []
+# # for bit_plane in bit_planes:
+# #     bit_planes_comp.append((bit_plane, bp.calculateComplexity(bit_plane)))
+# #
+# # print (bit_planes_comp)
+# print (bp.calculateMaxDataSize("tes.jpg"))
 
-bp_processor = BitPlaneProcessing()
-a = bp_processor.getBinArrayTrueColor("tes.jpg")
-sliced_a = bp_processor.sliceToBlocks(a)
-bit_plane_array = []
-for a in sliced_a:
-    for i in range(24):
-        bit_plane_array.append(bp_processor.generateBitplaneArray(a, i))
-print (bit_plane_array[0])
+# Inserting
+from bpcs import BPCS
+
+alg = BPCS()
+alg.encrypt("tes.jpg", "input.txt")
