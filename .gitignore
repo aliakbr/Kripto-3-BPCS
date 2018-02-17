@@ -4,3 +4,5 @@
 *.png
 !gray.png
 *.bmp
+*.txt
+*.tx
