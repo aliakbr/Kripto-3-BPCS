@@ -37,18 +37,23 @@ class BPCS:
         
         # Inserting message
         encrypted_bitplanes = []
+        conj_map = [0]
+        conj_idx = 0
         i = 0
-        count = 0
-        for bitplane, complexity in bitplanes_comp:
+        count = -1
+        for idx, bitplane, complexity in enumerate(bitplanes_comp):
             if complexity > bp.ALPHA_TRESHOLD and (i < msg_size):
+                count += 1
                 if count == 0:
-                    # First complex plane is reserved for file name
-                    encrypted_bitplane = ''.join(input_name)
-                    count += 1
+                    # First complex plane is reserved for conjugation map
+                    conj_idx = idx
+                    continue
                 elif count == 1:
+                    # Second complex plane is reserved for file name
+                    encrypted_bitplane = ''.join(input_name)
+                elif count == 2:
                     # Change first bit plane to save message length
                     encrypted_bitplane = ''.join('{0:064b}'.format(msg_size))
-                    count += 1
                 else:
                     encrypted_bitplane = ''.join(input_blocks[i])
                     i += 1
@@ -56,10 +61,19 @@ class BPCS:
                 if encrypted_complexity <= bp.ALPHA_TRESHOLD:
                     encrypted_bitplane = bp.conjugate_bitplane(encrypted_bitplane)
                     encrypted_complexity = bp.calculateComplexity(encrypted_bitplane)
+                    conj_map.append(count)
                 print ("Encrypted : {}".format(encrypted_bitplane))
                 encrypted_bitplanes.append(encrypted_bitplane)
             else:
                 encrypted_bitplanes.append(bitplane)
+                
+        str_conj = '/'.format(conj_map)
+        bin_conj = ''.join('{0:08b}'.format(ord(x), 'b') for x in str_conj)
+        while len(bin_conj) % 64 != 0:
+            bin_conj += dummy_binary
+        input_conj = bp.sliceStringToBlocks(bin_conj)
+        encrypted_bitplane = bp.conjugate_bitplane(''.join(input_conj))
+        encrypted_bitplanes.insert(conj_idx, encrypted_bitplane)
         
         # Save bitplanes as image
         blocks_encrypted = bp.bitplaneToBlocks(encrypted_bitplanes)
