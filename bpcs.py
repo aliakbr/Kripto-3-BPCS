@@ -17,10 +17,18 @@ class BPCS:
                 bitplanes_comp.append((bitplane, complexity))
         
         # Split input into 8x8 blocks
+        dummy_binary = "00001010"
+        
+        # File Name
+        bin_name = ''.join('{0:08b}'.format(ord(x), 'b') for x in input_file)
+        while len(bin_name) % 64 != 0:
+            bin_name += dummy_binary
+        input_name = bp.sliceStringToBlocks(bin_name)
+        
+        # File Body
         with open(input_file, "r") as f:
             input_text = f.read()
         bin_input = ''.join('{0:08b}'.format(ord(x), 'b') for x in input_text)
-        dummy_binary = "00001010"
         while len(bin_input) % 64 != 0:
             bin_input += dummy_binary
         input_blocks = bp.sliceStringToBlocks(bin_input)
@@ -34,6 +42,10 @@ class BPCS:
         for bitplane, complexity in bitplanes_comp:
             if complexity > bp.ALPHA_TRESHOLD and (i < msg_size):
                 if count == 0:
+                    # First complex plane is reserved for file name
+                    encrypted_bitplane = ''.join(input_name)
+                    count += 1
+                elif count == 1:
                     # Change first bit plane to save message length
                     encrypted_bitplane = ''.join('{0:064b}'.format(msg_size))
                     count += 1
