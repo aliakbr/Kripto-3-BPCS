@@ -19,7 +19,7 @@
 from bpcs import BPCS
 ##
 alg = BPCS()
-alg.encrypt("tes.png", "input.txt", "output.png")
+alg.encrypt("tiger.bmp", "input.txt", "output.bmp")
 print(alg.decrypt("output.png"))
 # Create bitplanes of image img_file
 #from PIL import Image
@@ -78,7 +78,7 @@ print(alg.decrypt("output.png"))
 #        bitplanes_comp1.append((bitplane, complexity))
 #        bitplanes1.append(bitplane)
 #
-#        
+#
 #
 ## Split input into 8x8 blocks
 #with open(input_file, "r") as f:
