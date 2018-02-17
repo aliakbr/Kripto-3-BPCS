@@ -15,27 +15,70 @@
 # # print (bit_planes_comp)
 # print (bp.calculateMaxDataSize("tes.jpg"))
 
-# Inserting
+## Inserting
 from bpcs import BPCS
-#
+##
 alg = BPCS()
-alg.encrypt("tes.jpg", "input.txt", "output.jpg")
-alg.decrypt("output.jpg")
+alg.encrypt("tes.png", "input.txt", "output.png")
+print(alg.decrypt("output.png"))
 # Create bitplanes of image img_file
-
+#from PIL import Image
+#import numpy as np
 #from bitplane import BitPlaneProcessing
 #img_file = "tes.jpg"
 #input_file = "input.txt"
-#output_file = "output.jpg"
+#output_file = "output.png"
+#output_file1 = "output1.png"
 #bp = BitPlaneProcessing()
 #img_bin_ar = bp.getBinArrayTrueColor(img_file)
 #blocks = bp.sliceToBlocks(img_bin_ar)
+#img = Image.open(img_file)
+#imgArray = np.array(img)
+#r, g ,b = imgArray[0][0]
+#r = int(r)
+#g = int(g)
+#b = int(b)
+#col1 = (r,g,b)
+#a = blocks[0][0]
+#r = int(a[:8], 2)
+#g = int(a[8:16], 2)
+#b = int(a[16:24], 2)
+#col = (r, g, b)
+#b = []
+#for i in range(8):
+#    for j in range(8):
+#        b.append(img_bin_ar[i][j])
+#
 #bitplanes_comp = []
+#bitplanes = []
 #for block in blocks:
 #    for i in range(24):
 #        bitplane = bp.generateBitplaneArray(block, i)
 #        complexity = bp.calculateComplexity(bitplane)
 #        bitplanes_comp.append((bitplane, complexity))
+#        bitplanes.append(bitplane)
+#
+#blocks_1 = bp.bitplaneToBlocks(bitplanes)
+#img_data = bp.blocksToRGBData(blocks_1)
+#img_data1 = bp.blocksToRGBData(blocks)
+#bp.dataToImage(img_data, output_file)
+#bp.dataToImage(img_data, output_file1)
+#
+#img = Image.open(output_file1)
+#imgArray = np.array(img)
+#img_bin_ar1 = bp.getBinArrayTrueColor(output_file)
+#img_bin_ar2 = bp.getBinArrayTrueColor(output_file1)
+#blocks = bp.sliceToBlocks(img_bin_ar)
+#bitplanes_comp1 = []
+#bitplanes1 = []
+#for block in blocks:
+#    for i in range(24):
+#        bitplane = bp.generateBitplaneArray(block, i)
+#        complexity = bp.calculateComplexity(bitplane)
+#        bitplanes_comp1.append((bitplane, complexity))
+#        bitplanes1.append(bitplane)
+#
+#        
 #
 ## Split input into 8x8 blocks
 #with open(input_file, "r") as f:
@@ -55,13 +98,16 @@ alg.decrypt("output.jpg")
 #    if complexity > bp.ALPHA_TRESHOLD and (i < msg_size):
 #        if count == 0:
 #            # Change first bit plane to save message length
-#            msg_len = ''.join('{0:064b}'.format(msg_size))
-#            encrypted_bitplane = msg_len
-#            encrypted_bitplanes.append(encrypted_bitplane)
+#            encrypted_bitplane = ''.join('{0:064b}'.format(msg_size))
 #            count += 1
 #        else:
-#            encrypted_bitplanes.append(''.join(input_blocks[i]))
+#            encrypted_bitplane = ''.join(input_blocks[i])
 #            i += 1
+#        encrypted_complexity = bp.calculateComplexity(encrypted_bitplane)
+#        if encrypted_complexity <= bp.ALPHA_TRESHOLD:
+#            encrypted_bitplane = bp.conjugate_bitplane(encrypted_bitplane)
+#            encrypted_complexity = bp.calculateComplexity(encrypted_bitplane)
+#        encrypted_bitplanes.append(encrypted_bitplane)
 #    else:
 #        encrypted_bitplanes.append(bitplane)
 #

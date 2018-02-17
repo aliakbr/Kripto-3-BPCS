@@ -29,7 +29,7 @@ class BitPlaneProcessing:
         row, col, channel = imgArray.shape
         self.format_file = img_file.split(".")[1]
         self.size = (col, row)
-        matrix = [['0' for x in range(col)] for y in range(row)] 
+        matrix = [['0' for x in range(col)] for y in range(row)]
         self.true_rgb_values = [[(0, 0, 0) for x in range(col)] for y in range(row)]
         for i in range(row):
             for j in range(col):
@@ -38,7 +38,11 @@ class BitPlaneProcessing:
                 for val in rgb_values:
                     bin_str += '{0:08b}'.format(val)
                 matrix[i][j] = bin_str
-                self.true_rgb_values[i][j] = tuple(rgb_values)
+                r, g ,b = rgb_values
+                r = int(r)
+                g = int(g)
+                b = int(b)
+                self.true_rgb_values[i][j] = (r, g, b)
         return matrix
 
     def sliceToBlocks(self, binMatrix):
@@ -65,7 +69,7 @@ class BitPlaneProcessing:
         self.height_border = i
         self.width_border = j
         return blocks
-    
+
     def sliceStringToBlocks(self, input_str):
         output = []
         i = 0
@@ -73,7 +77,7 @@ class BitPlaneProcessing:
             output.append(input_str[i:i+64])
             i += 64
         return output
-    
+
     def generateBitplaneArray(self, binArray, bit_pos):
         """
             Generate bitplane from desirable bit position
@@ -172,7 +176,7 @@ class BitPlaneProcessing:
                 image_data.append((i, j, self.true_rgb_values[i][j]))
                 j += 1
             i += 1
-        
+
         i = 0
         while (i < h):
             j = self.width_border
@@ -180,7 +184,7 @@ class BitPlaneProcessing:
                 image_data.append((i, j, self.true_rgb_values[i][j]))
                 j += 1
             i += 1
-            
+
         i = self.height_border
         while (i < h):
             j = self.width_border
@@ -188,25 +192,20 @@ class BitPlaneProcessing:
                 image_data.append((i, j, self.true_rgb_values[i][j]))
                 j += 1
             i += 1
+
         return image_data
 
     def dataToImage(self, rgb_data, image_file_output):
         """
-            Create RGB data from 8x8 blocks binary string
+           Save RGB Data to Image
         """
-        WIDTH = self.size[0]
-        HEIGTH = self.size[1]
-        img = Image.new('RGB', (WIDTH, HEIGTH))
+        img = Image.new(mode="RGB", size=self.size)
         img_data = img.load()
-        rgb_data = sorted(rgb_data, key=lambda x: (x[0],x[1]))
+        rgb_data = sorted(rgb_data, key=lambda x: (x[1],x[0]))
         for x, y, color in rgb_data:
             img_data[y,x] = color
-        if self.format_file == "jpg":
-            format_file = "JPEG"
-        else:
-            format_file = self.format_file
         img.save(image_file_output)
-    
+
     def conjugate_bitplane(self, P):
         W = ''.join(['1' for i in range(64)])
         B = ''.join(['0' for i in range(64)])
@@ -218,5 +217,3 @@ class BitPlaneProcessing:
         for i, c in enumerate(P):
             _P += _xor(c, Wc[i])
         return _P
-        
-        

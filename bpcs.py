@@ -25,6 +25,7 @@ class BPCS:
             bin_input += dummy_binary
         input_blocks = bp.sliceStringToBlocks(bin_input)
         msg_size = len(input_blocks)
+        print (msg_size)
         
         # Inserting message
         encrypted_bitplanes = []
@@ -41,15 +42,9 @@ class BPCS:
                     i += 1
                 encrypted_complexity = bp.calculateComplexity(encrypted_bitplane)
                 if encrypted_complexity <= bp.ALPHA_TRESHOLD:
-                    print ("==== BEFORE ===")
-                    print (encrypted_bitplane)
-                    print (encrypted_complexity)
                     encrypted_bitplane = bp.conjugate_bitplane(encrypted_bitplane)
                     encrypted_complexity = bp.calculateComplexity(encrypted_bitplane)
-                    print ("==== AFTER =====")
-                    print (encrypted_bitplane)
-                    print (encrypted_complexity)
-                    print ("================")
+                print ("Encrypted : {}".format(encrypted_bitplane))
                 encrypted_bitplanes.append(encrypted_bitplane)
             else:
                 encrypted_bitplanes.append(bitplane)
@@ -75,9 +70,7 @@ class BPCS:
         output = ""
         for bitplane, complexity in bitplanes_comp:
             if complexity > bp.ALPHA_TRESHOLD:
-                print (bitplane)
                 bitplane = bp.conjugate_bitplane(bitplane)
-                print (bitplane)
                 msg_len = int(bitplane, 2)
                 break
 
@@ -88,6 +81,10 @@ class BPCS:
                     count += 1
                 else:
                     j = 0
+                    print (bitplane)
                     while (j < len(bitplane)):
-                        output += chr(int(bitplane[j:j+8], 2))
+                        kar = chr(int(bitplane[j:j+8], 2))
+                        output += kar
+                        j += 8
+                    i += 1
         return output
