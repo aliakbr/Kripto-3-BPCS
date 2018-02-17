@@ -25,6 +25,7 @@ class BitPlaneProcessing:
         """
         self.img_file = img_file
         img = Image.open(img_file)
+        img = img.convert("RGB")
         imgArray = np.array(img)
         row, col, channel = imgArray.shape
         self.format_file = img_file.split(".")[1]
