@@ -34,15 +34,23 @@ class BPCS:
             if complexity > bp.ALPHA_TRESHOLD and (i < msg_size):
                 if count == 0:
                     # Change first bit plane to save message length
-                    msg_len = ''.join('{0:064b}'.format(msg_size))
-                    encrypted_bitplane = msg_len
-                    encrypted_complexity = bp.calculateComplexity(encrypted_bitplane)
-                    print (encrypted_complexity)
-                    encrypted_bitplanes.append(encrypted_bitplane)
+                    encrypted_bitplane = ''.join('{0:064b}'.format(msg_size))
                     count += 1
                 else:
-                    encrypted_bitplanes.append(''.join(input_blocks[i]))
+                    encrypted_bitplane = ''.join(input_blocks[i])
                     i += 1
+                encrypted_complexity = bp.calculateComplexity(encrypted_bitplane)
+                if encrypted_complexity <= bp.ALPHA_TRESHOLD:
+                    print ("==== BEFORE ===")
+                    print (encrypted_bitplane)
+                    print (encrypted_complexity)
+                    encrypted_bitplane = bp.conjugate_bitplane(encrypted_bitplane)
+                    encrypted_complexity = bp.calculateComplexity(encrypted_bitplane)
+                    print ("==== AFTER =====")
+                    print (encrypted_bitplane)
+                    print (encrypted_complexity)
+                    print ("================")
+                encrypted_bitplanes.append(encrypted_bitplane)
             else:
                 encrypted_bitplanes.append(bitplane)
         
@@ -67,6 +75,8 @@ class BPCS:
         output = ""
         for bitplane, complexity in bitplanes_comp:
             if complexity > bp.ALPHA_TRESHOLD:
+                print (bitplane)
+                bitplane = bp.conjugate_bitplane(bitplane)
                 print (bitplane)
                 msg_len = int(bitplane, 2)
                 break

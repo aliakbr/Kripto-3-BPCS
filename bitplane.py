@@ -206,3 +206,17 @@ class BitPlaneProcessing:
         else:
             format_file = self.format_file
         img.save(image_file_output)
+    
+    def conjugate_bitplane(self, P):
+        W = ''.join(['1' for i in range(64)])
+        B = ''.join(['0' for i in range(64)])
+        Wc = ''.join(['01' for i in range(32)])
+        Bc = ''.join(['10' for i in range(32)])
+        def _xor(a, b):
+            return '0' if a == b else '1'
+        _P = ""
+        for i, c in enumerate(P):
+            _P += _xor(c, Wc[i])
+        return _P
+        
+        
