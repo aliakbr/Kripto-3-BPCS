@@ -33,15 +33,14 @@ class BPCS:
             bin_input += dummy_binary
         input_blocks = bp.sliceStringToBlocks(bin_input)
         msg_size = len(input_blocks)
-        print (msg_size)
         
         # Inserting message
         encrypted_bitplanes = []
-        conj_map = [0]
+        conj_map = ['0']
         conj_idx = 0
         i = 0
         count = -1
-        for idx, bitplane, complexity in enumerate(bitplanes_comp):
+        for idx, (bitplane, complexity) in enumerate(bitplanes_comp):
             if complexity > bp.ALPHA_TRESHOLD and (i < msg_size):
                 count += 1
                 if count == 0:
@@ -61,13 +60,12 @@ class BPCS:
                 if encrypted_complexity <= bp.ALPHA_TRESHOLD:
                     encrypted_bitplane = bp.conjugate_bitplane(encrypted_bitplane)
                     encrypted_complexity = bp.calculateComplexity(encrypted_bitplane)
-                    conj_map.append(count)
-                print ("Encrypted : {}".format(encrypted_bitplane))
+                    conj_map.append(str(count))
                 encrypted_bitplanes.append(encrypted_bitplane)
             else:
                 encrypted_bitplanes.append(bitplane)
                 
-        str_conj = '/'.format(conj_map)
+        str_conj = '/'.join(conj_map)
         bin_conj = ''.join('{0:08b}'.format(ord(x), 'b') for x in str_conj)
         while len(bin_conj) % 64 != 0:
             bin_conj += dummy_binary
@@ -93,24 +91,56 @@ class BPCS:
 
         count = 0
         i = 0
+        conj_map = [0]
         output = ""
         for bitplane, complexity in bitplanes_comp:
             if complexity > bp.ALPHA_TRESHOLD:
-                bitplane = bp.conjugate_bitplane(bitplane)
-                msg_len = int(bitplane, 2)
-                break
-
-        print (msg_len)
-        for bitplane, complexity in bitplanes_comp:
-            if complexity > bp.ALPHA_TRESHOLD and i != msg_len:
                 if count == 0:
+                    msg_conj = ""
+                    bitplane = bp.conjugate_bitplane(bitplane)
+                    j = 0
+                    while (j < len(bitplane)):
+                        kar = chr(int(bitplane[j:j+8], 2))
+                        msg_conj += kar
+                        j += 8
+                    conj_map = msg_conj.strip().split('/')
+                    count += 1
+                elif count == 1:
+                    file_name = ""
+                    if count in conj_map:
+                        bitplane = bp.conjugate_bitplane(bitplane)
+                    j = 0
+                    while (j < len(bitplane)):
+                        kar = chr(int(bitplane[j:j+8], 2))
+                        file_name += kar
+                        j += 8
+                    file_name = file_name.strip()
                     count += 1
                 else:
+                    if count in conj_map:
+                        bitplane = bp.conjugate_bitplane(bitplane)
+                    msg_len = int(bitplane, 2)
+                    break
+        
+        count = 0
+        print ('Conjugation idx : {}'.format(conj_map))
+        print ('File name       : {}'.format(file_name))
+        print ('Message length  : {}'.format(msg_len))
+        for bitplane, complexity in bitplanes_comp:
+            if complexity > bp.ALPHA_TRESHOLD and i != msg_len:
+                if count <= 2:
+                    count += 1
+                elif count:
+                    if count in conj_map:
+                        bitplane = bp.conjugate_bitplane(bitplane)
                     j = 0
-                    print (bitplane)
                     while (j < len(bitplane)):
                         kar = chr(int(bitplane[j:j+8], 2))
                         output += kar
                         j += 8
                     i += 1
+        
+        with open(file_name, 'w') as f:
+            f.write(output)
+            
         return output

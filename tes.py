@@ -19,7 +19,8 @@
 from bpcs import BPCS
 ##
 alg = BPCS()
-alg.encrypt("tes.png", "input.txt", "output.png")
+alg.encrypt("anime is corrupting our youth.png", "inp.txt", "output.png")
+print("===output===")
 print(alg.decrypt("output.png"))
 # Create bitplanes of image img_file
 #from PIL import Image
