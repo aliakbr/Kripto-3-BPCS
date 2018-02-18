@@ -19,9 +19,9 @@
 from bpcs import BPCS
 ##
 alg = BPCS()
-alg.encrypt("gray.png", "inp.txt", "output.png", sequential=False)
+alg.encrypt("gray.png", "inp.txt", "output.png", sequential=True)
 print("===output===")
-print(alg.decrypt("output.png", sequential=False))
+print(alg.decrypt("output.png", sequential=True))
 # Create bitplanes of image img_file
 #from PIL import Image
 #import numpy as np

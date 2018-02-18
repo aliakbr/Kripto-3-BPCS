@@ -4,6 +4,7 @@
 from bitplane import BitPlaneProcessing
 from vigenere_ascii import Vigenere_Ascii
 import random
+import pickle
 
 class BPCS:
     def encrypt(self, img_file, input_file, output_file,
@@ -33,9 +34,7 @@ class BPCS:
             bin_name += dummy_binary
         input_name = bp.sliceStringToBlocks(bin_name)
 
-        # File Body
-        with open(input_file, "r") as f:
-            input_text = f.read()
+        input_text = self.read_byte_string(input_file)
         input_text = vigenere.encrypt(key, input_text)
         bin_input = ''.join('{0:08b}'.format(ord(x), 'b') for x in input_text)
         while len(bin_input) % 64 != 0:
@@ -57,6 +56,7 @@ class BPCS:
             random.seed(self.get_seed(key))
             random.shuffle(bitplanes_comp)
 
+        bitplanes_used = []
         for idx, (no, bitplane, complexity) in enumerate(bitplanes_comp):
             if complexity > bp.alpha_threshold and (i < msg_size):
                 count += 1
@@ -64,6 +64,7 @@ class BPCS:
                     # First complex plane is reserved for conjugation map
                     conj_idx = idx
                     conj_no = no
+                    bitplanes_used.append(no)
                     continue
                 elif count == 1:
                     # Second complex plane is reserved for file name
@@ -80,10 +81,11 @@ class BPCS:
                     encrypted_complexity = bp.calculateComplexity(encrypted_bitplane)
                     conj_map.append(str(count))
                 encrypted_bitplanes.append((no, encrypted_bitplane))
+                bitplanes_used.append(no)
             else:
                 encrypted_bitplanes.append((no, bitplane))
 
-
+        print('Bitplanes Used:', bitplanes_used)
         str_conj = '/'.join(conj_map)
         bin_conj = ''.join('{0:08b}'.format(ord(x), 'b') for x in str_conj)
         while len(bin_conj) % 64 != 0:
@@ -175,8 +177,7 @@ class BPCS:
                     i += 1
 
         output = vigenere.decrypt(key, output)
-        with open(file_name, 'w') as f:
-            f.write(output)
+        self.write_byte_string(file_name, output)
         return output
 
     def get_seed(self, key):
@@ -184,3 +185,20 @@ class BPCS:
         for c in key:
             seed += ord(c)
         return seed
+
+    def read_byte_string(self, filename):
+        array_of_bytes = []
+        with open(filename, 'rb') as f:
+            byte = f.read(1)
+            while byte:
+                array_of_bytes.append(byte)
+                byte = f.read(1)
+
+        temp = [int(x[0]) for x in array_of_bytes]
+        return ''.join(chr(x) for x in temp)
+
+    def write_byte_string(self, filename, output):
+        array_of_bytes = [ord(x) for x in output]
+        with open(filename, 'wb') as f:
+            f.write(bytearray(array_of_bytes))
+        return output
