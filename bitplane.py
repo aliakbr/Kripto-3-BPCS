@@ -10,10 +10,10 @@ class BitPlaneProcessing:
     """
         Class to process image in bitplane
     """
-    def __init__(self):
+    def __init__(self, alpha_threshold=0.3):
         self.unused_pixels = 0
         self.img_file = ""
-        self.ALPHA_TRESHOLD = 0.3
+        self.alpha_threshold = alpha_threshold
         self.size = (0, 0)
         self.format_file = ""
         self.width_border = 0
@@ -124,16 +124,16 @@ class BitPlaneProcessing:
             output :
                 Number of bits that can be hid
         """
-        img_bin_ar = self.getBinArrayTrueColor("tes.jpg")
+        img_bin_ar = self.getBinArrayTrueColor(img_file)
         blocks = self.sliceToBlocks(img_bin_ar)
         count = 0
 
         for block in blocks:
             for i in range(24):
                 bit_plane = self.generateBitplaneArray(block, i)
-                if self.calculateComplexity(bit_plane) > self.ALPHA_TRESHOLD:
+                if self.calculateComplexity(bit_plane) > self.alpha_threshold:
                     count += 1
-        return (count-1)*64/8 # -1 for message saving bitplane
+        return (count-1) * 64 / 8 # -1 for message saving bitplane
 
     def bitplaneToBlocks(self, bitplanes):
         """

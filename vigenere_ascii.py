@@ -35,7 +35,7 @@ class Vigenere_Ascii:
         for i in range(len(plaintext)):
             enc_ascii = (ord(plaintext[i]) + ord(padded_key[i])) % 256
             output.append(chr(enc_ascii))
-        return output
+        return ''.join(output)
 
 
     def decrypt(self, key, encrypted):
@@ -52,4 +52,4 @@ class Vigenere_Ascii:
         for i in range(len(encrypted)):
             dec_ascii = (ord(encrypted[i]) - ord(padded_key[i])) % 256
             output.append(chr(dec_ascii))
-        return output
+        return ''.join(output)

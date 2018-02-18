@@ -2,10 +2,18 @@
     Class to do BPCS algorithm
 """
 from bitplane import BitPlaneProcessing
-bp = BitPlaneProcessing()
+from vigenere_ascii import Vigenere_Ascii
+import random
 
 class BPCS:
-    def encrypt(self, img_file, input_file, output_file):
+    def encrypt(self, img_file, input_file, output_file,
+        key='default',
+        sequential=True,
+        cgc=False,
+        threshold=0.3):
+        bp = BitPlaneProcessing(threshold)
+        vigenere = Vigenere_Ascii()
+
         # Create bitplanes of image img_file
         img_bin_ar = bp.getBinArrayTrueColor(img_file)
         blocks = bp.sliceToBlocks(img_bin_ar)
@@ -15,37 +23,47 @@ class BPCS:
                 bitplane = bp.generateBitplaneArray(block, i)
                 complexity = bp.calculateComplexity(bitplane)
                 bitplanes_comp.append((bitplane, complexity))
-        
+
         # Split input into 8x8 blocks
         dummy_binary = "00001010"
-        
+
         # File Name
         bin_name = ''.join('{0:08b}'.format(ord(x), 'b') for x in input_file)
         while len(bin_name) % 64 != 0:
             bin_name += dummy_binary
         input_name = bp.sliceStringToBlocks(bin_name)
-        
+
         # File Body
         with open(input_file, "r") as f:
             input_text = f.read()
+        input_text = vigenere.encrypt(key, input_text)
         bin_input = ''.join('{0:08b}'.format(ord(x), 'b') for x in input_text)
         while len(bin_input) % 64 != 0:
             bin_input += dummy_binary
         input_blocks = bp.sliceStringToBlocks(bin_input)
         msg_size = len(input_blocks)
-        
+
         # Inserting message
         encrypted_bitplanes = []
         conj_map = ['0']
         conj_idx = 0
         i = 0
         count = -1
+
         for idx, (bitplane, complexity) in enumerate(bitplanes_comp):
-            if complexity > bp.ALPHA_TRESHOLD and (i < msg_size):
+            bitplanes_comp[idx] = (idx, bitplane, complexity)
+
+        if not sequential:
+            random.seed(self.get_seed(key))
+            random.shuffle(bitplanes_comp)
+
+        for idx, (no, bitplane, complexity) in enumerate(bitplanes_comp):
+            if complexity > bp.alpha_threshold and (i < msg_size):
                 count += 1
                 if count == 0:
                     # First complex plane is reserved for conjugation map
                     conj_idx = idx
+                    conj_no = no
                     continue
                 elif count == 1:
                     # Second complex plane is reserved for file name
@@ -57,28 +75,39 @@ class BPCS:
                     encrypted_bitplane = ''.join(input_blocks[i])
                     i += 1
                 encrypted_complexity = bp.calculateComplexity(encrypted_bitplane)
-                if encrypted_complexity <= bp.ALPHA_TRESHOLD:
+                if encrypted_complexity <= bp.alpha_threshold:
                     encrypted_bitplane = bp.conjugate_bitplane(encrypted_bitplane)
                     encrypted_complexity = bp.calculateComplexity(encrypted_bitplane)
                     conj_map.append(str(count))
-                encrypted_bitplanes.append(encrypted_bitplane)
+                encrypted_bitplanes.append((no, encrypted_bitplane))
             else:
-                encrypted_bitplanes.append(bitplane)
-                
+                encrypted_bitplanes.append((no, bitplane))
+
+
         str_conj = '/'.join(conj_map)
         bin_conj = ''.join('{0:08b}'.format(ord(x), 'b') for x in str_conj)
         while len(bin_conj) % 64 != 0:
             bin_conj += dummy_binary
         input_conj = bp.sliceStringToBlocks(bin_conj)
         encrypted_bitplane = bp.conjugate_bitplane(''.join(input_conj))
-        encrypted_bitplanes.insert(conj_idx, encrypted_bitplane)
-        
+        encrypted_bitplanes.insert(conj_idx, (conj_no, encrypted_bitplane))
+
+        encrypted_bitplanes.sort(key=lambda x: x[0])
+        encrypted_bitplanes = [x[1] for x in encrypted_bitplanes]
+
         # Save bitplanes as image
         blocks_encrypted = bp.bitplaneToBlocks(encrypted_bitplanes)
         img_data = bp.blocksToRGBData(blocks_encrypted)
         bp.dataToImage(img_data, output_file)
 
-    def decrypt(self, img_file):
+    def decrypt(self, img_file,
+        key='default',
+        sequential=True,
+        cgc=False,
+        threshold=0.3):
+        bp = BitPlaneProcessing(threshold)
+        vigenere = Vigenere_Ascii()
+
         # Create bitplanes of image img_file
         img_bin_ar = bp.getBinArrayTrueColor(img_file)
         blocks = bp.sliceToBlocks(img_bin_ar)
@@ -93,8 +122,13 @@ class BPCS:
         i = 0
         conj_map = [0]
         output = ""
+
+        if not sequential:
+            random.seed(self.get_seed(key))
+            random.shuffle(bitplanes_comp)
+
         for bitplane, complexity in bitplanes_comp:
-            if complexity > bp.ALPHA_TRESHOLD:
+            if complexity > bp.alpha_threshold:
                 if count == 0:
                     msg_conj = ""
                     bitplane = bp.conjugate_bitplane(bitplane)
@@ -121,13 +155,13 @@ class BPCS:
                         bitplane = bp.conjugate_bitplane(bitplane)
                     msg_len = int(bitplane, 2)
                     break
-        
+
         count = 0
         print ('Conjugation idx : {}'.format(conj_map))
         print ('File name       : {}'.format(file_name))
         print ('Message length  : {}'.format(msg_len))
         for bitplane, complexity in bitplanes_comp:
-            if complexity > bp.ALPHA_TRESHOLD and i != msg_len:
+            if complexity > bp.alpha_threshold and i != msg_len:
                 if count <= 2:
                     count += 1
                 elif count:
@@ -139,8 +173,14 @@ class BPCS:
                         output += kar
                         j += 8
                     i += 1
-        
+
+        output = vigenere.decrypt(key, output)
         with open(file_name, 'w') as f:
             f.write(output)
-            
         return output
+
+    def get_seed(self, key):
+        seed = 0
+        for c in key:
+            seed += ord(c)
+        return seed
