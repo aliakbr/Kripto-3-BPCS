@@ -178,7 +178,7 @@ class BPCS:
 
         output = vigenere.decrypt(key, output)
         self.write_byte_string(file_name, output)
-        return output
+        return file_name
 
     def get_seed(self, key):
         seed = 0
