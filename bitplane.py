@@ -227,7 +227,10 @@ class BitPlaneProcessing:
         """
            Save RGB Data to Image
         """
-        img = Image.new(mode="RGB", size=self.size)
+        if (self.enc_mode == "RGB"):
+            img = Image.new(mode="RGB", size=self.size)
+        else:
+            img = Image.new(mode="RGBA", size=self.size)
         img_data = img.load()
         rgb_data = sorted(rgb_data, key=lambda x: (x[1],x[0]))
         for x, y, color in rgb_data:
