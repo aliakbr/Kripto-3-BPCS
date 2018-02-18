@@ -2,7 +2,7 @@ import tkinter as tk
 import threading
 import os
 import shutil
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
 from PIL import ImageTk, Image
 from bpcs import BPCS
 
@@ -80,7 +80,7 @@ def start():
             t = threading.Thread(target=process_encrypt)
             t.start()
         else:
-            print('Not OK')
+            show_error()
     else:
         if can_decrypt():
             def process_decrypt():
@@ -99,7 +99,7 @@ def start():
             t = threading.Thread(target=process_decrypt)
             t.start()
         else:
-            print('Not OK')
+            show_error()
 
 def change_action():
     global left_label, middle_label, middle_button, right_button
@@ -156,6 +156,20 @@ def can_decrypt():
     if key_entry.get() == '' or img_filepath == '':
         return False
     return True
+
+def show_error():
+    message = 'Please fill in those fields:\n'
+    fields = []
+    if key_entry.get() == '':
+        fields.append('Key')
+    if img_filepath == '':
+        if action.get() == INSERT:
+            fields.append('Original Image')
+        else:
+            fields.append('BPCS Image')
+    if plain_filepath == '' and action.get() == INSERT:
+        fields.append('Message')
+    messagebox.showerror("Error", message + ', '.join(fields))
 
 def transform_image(filepath):
     img = Image.open(img_filepath).convert('RGBA')
