@@ -15,7 +15,7 @@ filename = ''
 
 def open_image():
     global img_input, left_image
-    filepath = filedialog.askopenfilename(initialdir = "/",title = "Select file",filetypes = (("jpeg files","*.jpg"),("all files","*.*")))
+    filepath = filedialog.askopenfilename(initialdir = "/",title = "Select file",filetypes = (("jpeg files","*.jpg"), ("all files","*.*")))
     img_input = ImageTk.PhotoImage(Image.open(filepath))
     left_image.configure(image=img_input)
     left_image.image = img_input
@@ -35,16 +35,16 @@ def upload_file():
     filename_label.configure(text='Filename: ' + filename)
 
 def start():
-    if mode.get() == ENCRYPT:
+    if action.get() == ENCRYPT:
         # Kode encrypt
         pass
     else:
         # Kode decrypt
         pass
 
-def change_mode():
+def change_action():
     global left_label, middle_label, middle_button, right_button
-    if mode.get() == ENCRYPT:
+    if action.get() == ENCRYPT:
         left_label.configure(text="Original Image")
         middle_label.configure(text="BPCS Image")
         middle_button.configure(state=tk.NORMAL)
@@ -55,8 +55,13 @@ def change_mode():
         middle_button.configure(state=tk.DISABLED)
         right_button.configure(text="Save Extracted")
 
-mode = tk.IntVar()
-mode.set(ENCRYPT)
+# Variables
+action = tk.IntVar()
+action.set(ENCRYPT)
+cgc = tk.BooleanVar()
+cgc.set(True)
+sequential = tk.BooleanVar()
+sequential.set(True)
 
 # Top frame
 title_frame = tk.Frame(root)
@@ -140,27 +145,63 @@ main_frame.pack()
 # Bottom frame
 bottom_frame = tk.Frame(root)
 
-# Mode frame
-mode_frame = tk.Frame(bottom_frame)
-tk.Label(mode_frame,
-         text="Your Choice",
+# Action frame
+action_frame = tk.Frame(bottom_frame)
+tk.Label(action_frame,
+         text="Action",
          justify=tk.LEFT,
          padx=20).pack()
-tk.Radiobutton(mode_frame,
+tk.Radiobutton(action_frame,
               text="Encrypt",
               padx=20,
-              variable=mode,
-              command=change_mode,
+              variable=action,
+              command=change_action,
               value=ENCRYPT).pack(anchor=tk.W)
-tk.Radiobutton(mode_frame,
+tk.Radiobutton(action_frame,
               text="Decrypt",
               padx=20,
-              variable=mode,
-              command=change_mode,
+              variable=action,
+              command=change_action,
               value=DECRYPT).pack(anchor=tk.W)
-mode_frame.pack(side=tk.LEFT, pady=5)
+action_frame.pack(side=tk.LEFT, pady=5)
 
-# Input Frame
+# CGC frame
+cgc_frame = tk.Frame(bottom_frame)
+tk.Label(cgc_frame,
+         text="Use CGC?",
+         justify=tk.LEFT,
+         padx=20).pack()
+tk.Radiobutton(cgc_frame,
+              text="Yes",
+              padx=20,
+              variable=cgc,
+              value=ENCRYPT).pack(anchor=tk.W)
+tk.Radiobutton(cgc_frame,
+              text="No",
+              padx=20,
+              variable=cgc,
+              value=DECRYPT).pack(anchor=tk.W)
+cgc_frame.pack(side=tk.LEFT, pady=5)
+
+# Sequential frame
+sequential_frame = tk.Frame(bottom_frame)
+tk.Label(sequential_frame,
+         text="Sequential/Random?",
+         justify=tk.LEFT,
+         padx=20).pack()
+tk.Radiobutton(sequential_frame,
+              text="Sequential",
+              padx=20,
+              variable=sequential,
+              value=ENCRYPT).pack(anchor=tk.W)
+tk.Radiobutton(sequential_frame,
+              text="Random",
+              padx=20,
+              variable=sequential,
+              value=DECRYPT).pack(anchor=tk.W)
+sequential_frame.pack(side=tk.LEFT, pady=5)
+
+# Input frame
 input_frame = tk.Frame(bottom_frame)
 tk.Label(input_frame, text="BPCS Threshold").grid(row=0)
 tk.Label(input_frame, text="Key").grid(row=1)
