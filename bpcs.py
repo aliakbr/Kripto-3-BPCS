@@ -18,12 +18,7 @@ class BPCS:
         # Create bitplanes of image img_file
         img_bin_ar = bp.getBinArrayTrueColor(img_file)
         blocks = bp.sliceToBlocks(img_bin_ar)
-        bitplanes_comp = []
-        for block in blocks:
-            for i in range(24):
-                bitplane = bp.generateBitplaneArray(block, i)
-                complexity = bp.calculateComplexity(bitplane)
-                bitplanes_comp.append((bitplane, complexity))
+        bitplanes_comp = bp.create_bitplanes(blocks)
 
         # Split input into 8x8 blocks
         dummy_binary = "00001010"
@@ -98,12 +93,12 @@ class BPCS:
         input_conj = bp.sliceStringToBlocks(bin_conj)
         while len(input_conj) < 3:
             input_conj.append(''.join(['00000000'] * 8))
-        
+
         # Insert conjugation map bitplanes
         for x in range(len(conj_idx)):
             encrypted_bitplane = bp.conjugate_bitplane(''.join(input_conj[x]))
             encrypted_bitplanes.insert(conj_idx[x][1], (conj_idx[x][0], encrypted_bitplane))
-        
+
         encrypted_bitplanes.sort(key=lambda x: x[0])
         encrypted_bitplanes = [x[1] for x in encrypted_bitplanes]
 
@@ -123,12 +118,7 @@ class BPCS:
         # Create bitplanes of image img_file
         img_bin_ar = bp.getBinArrayTrueColor(img_file)
         blocks = bp.sliceToBlocks(img_bin_ar)
-        bitplanes_comp = []
-        for block in blocks:
-            for i in range(24):
-                bitplane = bp.generateBitplaneArray(block, i)
-                complexity = bp.calculateComplexity(bitplane)
-                bitplanes_comp.append((bitplane, complexity))
+        bitplanes_comp = bp.create_bitplanes(blocks)
 
         header = 0
         i = 0
@@ -160,13 +150,13 @@ class BPCS:
                             kar = chr(int(bitplane[j:j+8], 2))
                             file_name += kar
                             j += 8
-                    else:    
+                    else:
                         if header in conj_map:
                             bitplane = bp.conjugate_bitplane(bitplane)
                         msg_len = int(bitplane, 2)
                         break
                 header += 1
-        
+
         file_name = file_name.strip('\x00').strip()
         count = 0
         print ('Conjugation idx : {}'.format(conj_map))
@@ -211,3 +201,37 @@ class BPCS:
         with open(filename, 'wb') as f:
             f.write(bytearray(array_of_bytes))
         return output
+
+    def vigenere_encrypt(self, vigenere, input_file):
+        """
+            Input :
+                file name
+            Output :
+                list of char of byte
+        """
+        plaintext = []
+        with open(input_file,'rb') as f1:
+            while True:
+                b = f1.read(1)
+                if b:
+                    plaintext.append(chr(ord(b)))
+                else: break
+        return (vigenere.encrypt(plaintext))
+
+    def vigenere_decrypt(self, vigenere, encrypted):
+        """
+            Input :
+                list of char of byte [chr(ord(b))]
+            Output :
+                bytes of file
+        """
+        result = vigenere.decrypt(encrypted)
+        list_hex = [hex(ord(c)).split('x')[-1] for c in result]
+        for i, c in enumerate(list_hex):
+            if len(c) == 1:
+                list_hex[i] = '0'+c
+        hex_string = ' '.join(list_hex)
+        bytes_result = bytes.fromhex(hex_string)
+        return bytes_result
+        # with open(savefile, 'wb') as f:
+        #     f.write(bytes_result)

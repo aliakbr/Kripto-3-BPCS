@@ -18,6 +18,8 @@ class BitPlaneProcessing:
         self.format_file = ""
         self.width_border = 0
         self.height_border = 0
+        self.bits_len = 24
+        self.enc_mode = "RGB"
 
     def getBinArrayTrueColor(self, img_file):
         """
@@ -25,13 +27,22 @@ class BitPlaneProcessing:
         """
         self.img_file = img_file
         img = Image.open(img_file)
-        img = img.convert("RGB")
+        if (img.mode == "RGBA"):
+            self.bits_len = 32
+            self.enc_mode = "RGBA"
+        else:
+            self.bits_len = 24
+            img = img.convert("RGB")
+            self.enc_mode = "RGB"
         imgArray = np.array(img)
         row, col, channel = imgArray.shape
         self.format_file = img_file.split(".")[1]
         self.size = (col, row)
         matrix = [['0' for x in range(col)] for y in range(row)]
-        self.true_rgb_values = [[(0, 0, 0) for x in range(col)] for y in range(row)]
+        if (self.enc_mode == "RGBA"):
+            self.true_rgb_values = [[(0, 0, 0, 0) for x in range(col)] for y in range(row)]
+        else:
+            self.true_rgb_values = [[(0, 0, 0) for x in range(col)] for y in range(row)]
         for i in range(row):
             for j in range(col):
                 rgb_values = imgArray[i][j]
@@ -39,11 +50,12 @@ class BitPlaneProcessing:
                 for val in rgb_values:
                     bin_str += '{0:08b}'.format(val)
                 matrix[i][j] = bin_str
-                r, g ,b = rgb_values
-                r = int(r)
-                g = int(g)
-                b = int(b)
-                self.true_rgb_values[i][j] = (r, g, b)
+                if (self.enc_mode == "RGBA"):
+                    r, g ,b, a = rgb_values
+                    self.true_rgb_values[i][j] = (int(r), int(g), int(b), int(a))
+                else:
+                    r, g ,b = rgb_values
+                    self.true_rgb_values[i][j] = (int(r), int(g), int(b))
         return matrix
 
     def sliceToBlocks(self, binMatrix):
@@ -83,7 +95,7 @@ class BitPlaneProcessing:
         """
             Generate bitplane from desirable bit position
             return a binary image (matrix of value 1 or 0)
-            0 <= bit_pos <= 23
+            0 <= bit_pos <= 23 or 0 <= bit_pos <= 31
         """
         bitPlaneOutput = []
         for i in range(len(binArray)):
@@ -129,11 +141,23 @@ class BitPlaneProcessing:
         count = 0
 
         for block in blocks:
-            for i in range(24):
+            for i in range(self.bits_len):
                 bit_plane = self.generateBitplaneArray(block, i)
                 if self.calculateComplexity(bit_plane) > self.alpha_threshold:
                     count += 1
         return (count-1) * 64 / 8 # -1 for message saving bitplane
+
+    def create_bitplanes(self, blocks):
+        """
+            Create list of bitplanes and its complexity
+        """
+        output = []
+        for block in blocks:
+            for i in range(self.bits_len):
+                bitplane = self.generateBitplaneArray(block, i)
+                complexity = self.calculateComplexity(bitplane)
+                output.append((bitplane, complexity))
+        return output
 
     def bitplaneToBlocks(self, bitplanes):
         """
@@ -142,10 +166,10 @@ class BitPlaneProcessing:
         blocks = []
         i = 0
         while (i < len(bitplanes)):
-            bitplane_block = bitplanes[i:i+24]
+            bitplane_block = bitplanes[i:i+self.bits_len]
             block = [''.join(i) for i in zip(*bitplane_block)]
             blocks.append(block)
-            i += 24
+            i += self.bits_len
         return blocks
 
     def blocksToRGBData(self, blocks):
@@ -163,7 +187,11 @@ class BitPlaneProcessing:
                 b = int(pixel[16:24], 2)
                 x = x_start + (j // 8)
                 y = y_start + (j % 8)
-                image_data.append((x, y ,(r, g, b)))
+                if (self.enc_mode == "RGBA"):
+                    a = int(pixel[24:32], 2)
+                    image_data.append((x, y ,(r, g, b, a)))
+                else:
+                    image_data.append((x, y ,(r, g, b)))
             y_start += 8
             if (y_start >= self.width_border):
                 x_start += 8
@@ -193,7 +221,6 @@ class BitPlaneProcessing:
                 image_data.append((i, j, self.true_rgb_values[i][j]))
                 j += 1
             i += 1
-
         return image_data
 
     def dataToImage(self, rgb_data, image_file_output):
