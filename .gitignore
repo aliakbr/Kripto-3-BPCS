@@ -1,8 +1,2 @@
 /__pycache__
 .DS_Store
-*.jpg
-*.png
-!gray.png
-*.bmp
-*.txt
-*.tx
