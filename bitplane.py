@@ -3,6 +3,7 @@
 """
 
 import numpy as np
+import math
 from PIL import Image
 
 
@@ -286,3 +287,16 @@ class BitPlaneProcessing:
         for i, c in enumerate(P):
             _P += _xor(c, Wc[i])
         return _P
+
+    def calculate_psnr(self, bitplanes_x, bitplanes_y):
+        sum = 0
+        for bitplane_x, bitplane_y in zip(bitplanes_x, bitplanes_y):
+            for x, y in zip(bitplane_x, bitplane_y):
+                if x != y: sum += 1
+        
+        avg = sum / (len(bitplanes_x) * 64)
+        rms = math.sqrt(avg)
+        psnr = 20 * math.log10(256 / rms)
+        
+        return psnr
+        

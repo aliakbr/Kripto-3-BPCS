@@ -26,6 +26,8 @@ class BPCS:
             bitplanes_comp = bp.create_bitplanes_CGC(blocks)
         else:
             bitplanes_comp = bp.create_bitplanes(blocks)
+            
+        bitplanes_ori = [bitplane[0] for bitplane in bitplanes_comp]
 
         # Split input into 8x8 blocks
         dummy_binary = "00000000"
@@ -121,6 +123,12 @@ class BPCS:
         if cgc:
             reversed_blocks_encrypted = bp.reverse_CGC(blocks_encrypted)
             blocks_encrypted = bp.bitplaneToBlocks(reversed_blocks_encrypted)
+            
+        bitplanes_after = bp.create_bitplanes(blocks_encrypted)
+        bitplanes_after = [bitplane[0] for bitplane in bitplanes_after]
+        psnr = bp.calculate_psnr(bitplanes_ori, bitplanes_after)
+        print(psnr)
+            
         img_data = bp.blocksToRGBData(blocks_encrypted)
         bp.dataToImage(img_data, output_file)
 
