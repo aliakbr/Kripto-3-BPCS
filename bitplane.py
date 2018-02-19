@@ -158,6 +158,28 @@ class BitPlaneProcessing:
                 complexity = self.calculateComplexity(bitplane)
                 output.append((bitplane, complexity))
         return output
+    
+    def xor_bitplane(self, b, bprev):
+        """
+            XOR 2 bitplanes
+        """
+        return '{0:064b}'.format(int(b, 2) ^ int(bprev, 2))
+    
+    def create_bitplanes_CGC(self, blocks):
+        """
+            Create list of bitplanes and its complexity with CGC
+        """
+        output = []
+        for block in blocks:
+            last = ""
+            for i in range(self.bits_len):
+                bitplane = self.generateBitplaneArray(block, i)
+                last = bitplane
+                if i != 1:
+                    bitplane = self.xor_bitplane(bitplane, last)
+                complexity = self.calculateComplexity(bitplane)
+                output.append((bitplane, complexity))
+        return output
 
     def bitplaneToBlocks(self, bitplanes):
         """
