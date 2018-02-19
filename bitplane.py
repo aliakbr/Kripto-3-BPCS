@@ -180,6 +180,22 @@ class BitPlaneProcessing:
                 complexity = self.calculateComplexity(bitplane)
                 output.append((bitplane, complexity))
         return output
+    
+    def reverse_CGC(self, blocks):
+        """
+            Return to PBC from CGC
+        """
+        output = []
+        for block in blocks:
+            last = ""
+            for i in range(self.bits_len):
+                bitplane = self.generateBitplaneArray(block, i)
+                if i != 1:
+                    bitplane = self.xor_bitplane(bitplane, last)
+                complexity = self.calculateComplexity(bitplane)
+                last = bitplane
+                output.append((bitplane, complexity))
+        return output
 
     def bitplaneToBlocks(self, bitplanes):
         """
