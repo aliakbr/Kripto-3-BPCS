@@ -11,7 +11,8 @@ class BPCS:
         key='default',
         sequential=True,
         cgc=False,
-        threshold=0.3):
+        threshold=0.3,
+        encrypted=True):
         bp = BitPlaneProcessing(threshold)
         vigenere = Vigenere_Ascii()
 
@@ -26,7 +27,7 @@ class BPCS:
             bitplanes_comp = bp.create_bitplanes_CGC(blocks)
         else:
             bitplanes_comp = bp.create_bitplanes(blocks)
-            
+
         bitplanes_ori = [bitplane[0] for bitplane in bitplanes_comp]
 
         # Split input into 8x8 blocks
@@ -41,7 +42,8 @@ class BPCS:
         nm_size = len(input_name)
 
         input_text = self.read_byte_string(input_file)
-        input_text = vigenere.encrypt(key, input_text)
+        if encrypted:
+            input_text = vigenere.encrypt(key, input_text)
         msg_size = len(input_text)
         bin_input = ''.join('{0:08b}'.format(ord(x), 'b') for x in input_text)
         while len(bin_input) % 64 != 0:
@@ -111,6 +113,7 @@ class BPCS:
             input_conj.append(''.join(['00000000'] * 8))
 
         # Insert conjugation map bitplanes
+        print('Inserting conjugation map...')
         for x in range(len(conj_idx)):
             encrypted_bitplane = bp.conjugate_bitplane(''.join(input_conj[x]))
             encrypted_bitplanes.insert(conj_idx[x][1], (conj_idx[x][0], encrypted_bitplane))
@@ -118,25 +121,29 @@ class BPCS:
         encrypted_bitplanes.sort(key=lambda x: x[0])
         encrypted_bitplanes = [x[1] for x in encrypted_bitplanes]
 
+        print('Save bitplanes as image...')
         # Save bitplanes as image
         blocks_encrypted = bp.bitplaneToBlocks(encrypted_bitplanes)
         if cgc:
             reversed_blocks_encrypted = bp.reverse_CGC(blocks_encrypted)
             blocks_encrypted = bp.bitplaneToBlocks(reversed_blocks_encrypted)
-            
+
+        print('Calculate PSNR...')
         bitplanes_after = bp.create_bitplanes(blocks_encrypted)
         bitplanes_after = [bitplane[0] for bitplane in bitplanes_after]
         psnr = bp.calculate_psnr(bitplanes_ori, bitplanes_after)
-        print(psnr)
-            
+
+        print('Accumulate blocks to form image...')
         img_data = bp.blocksToRGBData(blocks_encrypted)
         bp.dataToImage(img_data, output_file)
+        return psnr
 
     def decrypt(self, img_file,
         key='default',
         sequential=True,
         cgc=False,
-        threshold=0.3):
+        threshold=0.3,
+        encrypted=True):
         bp = BitPlaneProcessing(threshold)
         vigenere = Vigenere_Ascii()
 
@@ -214,7 +221,8 @@ class BPCS:
                 count += 1
 
         print('Bitplanes Used For Message:', bitplanes_used)
-        output = vigenere.decrypt(key, output)
+        if encrypted:
+            output = vigenere.decrypt(key, output)
         self.write_byte_string(file_name, output)
         return file_name
 

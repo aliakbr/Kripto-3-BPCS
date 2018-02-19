@@ -23,7 +23,7 @@ bpcs = BPCS()
 
 def open_image():
     global img_input, img_filepath, img_filename_label, left_image
-    img_filepath = filedialog.askopenfilename(initialdir="/", title="Select file", filetypes=(("image files", "*.png"), ("all files", "*.*")))
+    img_filepath = filedialog.askopenfilename(initialdir="/", title="Select file", filetypes=[("Image Files", "*.png *.bmp")])
 
     img_input = transform_image(img_filepath)
     left_image.configure(image=img_input)
@@ -64,16 +64,21 @@ def start():
     if action.get() == INSERT:
         if can_encrypt():
             def process_encrypt():
-                bpcs.encrypt(img_filepath, plain_filename, "temp.png",
+                psnr = bpcs.encrypt(img_filepath, plain_filename, "temp.png",
                     sequential=sequential.get(),
                     key=key_entry.get(),
                     cgc=cgc.get(),
-                    threshold=float(threshold_entry.get()))
-                img_output = transform_image("temp.png")
-                middle_image.configure(image=img_output)
-                middle_image.image = img_output
-                status_label.configure(text='Status: Idle')
-                enable_buttons()
+                    threshold=float(threshold_entry.get()),
+                    encrypted=encrypt.get())
+                if psnr == False:
+                    messagebox.showerror("Error", "Payload is too big.")
+                else:
+                    img_output = transform_image("temp.png")
+                    middle_image.configure(image=img_output)
+                    middle_image.image = img_output
+                    status_label.configure(text='Status: Idle')
+                    psnr_score.configure(text="{0:.2f}".format(psnr))
+                    enable_buttons()
 
             disable_buttons()
             status_label.configure(text='Status: Processing')
@@ -89,7 +94,8 @@ def start():
                     sequential=sequential.get(),
                     key=key_entry.get(),
                     cgc=cgc.get(),
-                    threshold=float(threshold_entry.get()))
+                    threshold=float(threshold_entry.get()),
+                    encrypted=encrypt.get())
                 status_label.configure(text='Status: Idle')
                 filename_label.configure(text='Filename: ' + plain_filepath)
                 enable_buttons()
@@ -142,7 +148,7 @@ def enable_buttons():
     left_button.configure(state=tk.NORMAL)
     right_button.configure(state=tk.NORMAL)
     start_button.configure(state=tk.NORMAL)
-    if action == INSERT:
+    if action.get() == INSERT:
         middle_button.configure(state=tk.NORMAL)
 
 def can_encrypt():
@@ -181,6 +187,8 @@ def transform_image(filepath):
 
 def get_extension(filepath):
     splits = filepath.split('.')
+    if len(splits) == 1:
+        return ''
     return '.' + splits[len(splits)-1]
 
 def get_filename(filepath):
@@ -203,7 +211,7 @@ sequential.set(True)
 # Top frame
 title_frame = tk.Frame(root)
 title_label = tk.Label(title_frame,
-		         text="BPCS GAGA OH LALA",
+		         text="BPCS HUWALAUMBA",
 		         fg = "dark green",
 		         font = "Helvetica 16 bold italic").pack(pady=10)
 title_frame.pack()
@@ -324,12 +332,12 @@ tk.Radiobutton(cgc_frame,
               text="Yes",
               padx=20,
               variable=cgc,
-              value=INSERT).pack(anchor=tk.W)
+              value=True).pack(anchor=tk.W)
 tk.Radiobutton(cgc_frame,
               text="No",
               padx=20,
               variable=cgc,
-              value=EXTRACT).pack(anchor=tk.W)
+              value=False).pack(anchor=tk.W)
 cgc_frame.pack(side=tk.LEFT, pady=5)
 
 # Sequential frame
@@ -342,12 +350,12 @@ tk.Radiobutton(sequential_frame,
               text="Sequential",
               padx=20,
               variable=sequential,
-              value=INSERT).pack(anchor=tk.W)
+              value=True).pack(anchor=tk.W)
 tk.Radiobutton(sequential_frame,
               text="Random",
               padx=20,
               variable=sequential,
-              value=EXTRACT).pack(anchor=tk.W)
+              value=False).pack(anchor=tk.W)
 sequential_frame.pack(side=tk.LEFT, pady=5)
 
 # Encrypt frame
@@ -360,12 +368,12 @@ tk.Radiobutton(encrypt_frame,
               text="Yes",
               padx=20,
               variable=encrypt,
-              value=INSERT).pack(anchor=tk.W)
+              value=True).pack(anchor=tk.W)
 tk.Radiobutton(encrypt_frame,
               text="No",
               padx=20,
               variable=encrypt,
-              value=EXTRACT).pack(anchor=tk.W)
+              value=False).pack(anchor=tk.W)
 encrypt_frame.pack(side=tk.LEFT, pady=5)
 
 # Input frame
