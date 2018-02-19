@@ -20,7 +20,7 @@ from bpcs import BPCS
 ##
 alg = BPCS()
 treshold=0.35
-alg.encrypt("testcase/apple_raw.png", "testcase/tes.png", "output.png", sequential=True)
+alg.encrypt("testcase/lena.bmp", "testcase/tes.png", "output.png", sequential=True)
 print("===output===")
 print(alg.decrypt("output.png", sequential=True))
 # Create bitplanes of image img_file
