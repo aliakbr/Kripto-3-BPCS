@@ -15,6 +15,10 @@ class BPCS:
         bp = BitPlaneProcessing(threshold)
         vigenere = Vigenere_Ascii()
 
+        # Calculate bitplanes used for conjugation map
+        num_bitplanes = bp.calculateMaxDataSize(img_file)
+        num_conj_map = bp.calculateMaxDataSize(img_file) * 0.1
+
         # Create bitplanes of image img_file
         img_bin_ar = bp.getBinArrayTrueColor(img_file)
         blocks = bp.sliceToBlocks(img_bin_ar)

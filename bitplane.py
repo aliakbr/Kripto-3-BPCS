@@ -134,7 +134,7 @@ class BitPlaneProcessing:
             input :
                 Image file name
             output :
-                Number of bits that can be hid
+                Number of bitplanes
         """
         img_bin_ar = self.getBinArrayTrueColor(img_file)
         blocks = self.sliceToBlocks(img_bin_ar)
@@ -145,7 +145,7 @@ class BitPlaneProcessing:
                 bit_plane = self.generateBitplaneArray(block, i)
                 if self.calculateComplexity(bit_plane) > self.alpha_threshold:
                     count += 1
-        return (count-1) * 64 / 8 # -1 for message saving bitplane
+        return count
 
     def create_bitplanes(self, blocks):
         """
