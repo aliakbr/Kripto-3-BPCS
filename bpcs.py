@@ -21,7 +21,7 @@ class BPCS:
         bitplanes_comp = bp.create_bitplanes(blocks)
 
         # Split input into 8x8 blocks
-        dummy_binary = "00001010"
+        dummy_binary = "00000000"
 
         # File Name
         bin_name = ''.join('{0:08b}'.format(ord(x), 'b') for x in input_file)
@@ -32,18 +32,19 @@ class BPCS:
         nm_size = len(input_name)
 
         input_text = self.read_byte_string(input_file)
-        # input_text = vigenere.encrypt(key, input_text)
+        input_text = vigenere.encrypt(key, input_text)
+        msg_size = len(input_text)
         bin_input = ''.join('{0:08b}'.format(ord(x), 'b') for x in input_text)
         while len(bin_input) % 64 != 0:
             bin_input += dummy_binary
         input_blocks = bp.sliceStringToBlocks(bin_input)
-        msg_size = len(input_blocks)
+        msg_blocks_size = len(input_blocks)
 
         # Inserting message
         encrypted_bitplanes = []
         conj_map = ['abc']
         conj_idx = []
-        i = -1
+        i = -2
         nm = 0
         count = -1
 
@@ -55,8 +56,9 @@ class BPCS:
             random.shuffle(bitplanes_comp)
 
         bitplanes_used = []
+        bitplanes_used_msg = []
         for idx, (no, bitplane, complexity) in enumerate(bitplanes_comp):
-            if complexity > bp.alpha_threshold and (i < msg_size):
+            if complexity > bp.alpha_threshold and (i < msg_blocks_size):
                 count += 1
                 if count <= 2:
                     # First complex plane is reserved for conjugation map
@@ -69,11 +71,15 @@ class BPCS:
                         encrypted_bitplane = ''.join(input_name[nm])
                         nm += 1
                     else:
-                        if i == -1:
-                            # Change first bit plane to save message length
+                        if i == -2:
+                            # Change first bit plane to save bitplanes used length
+                            encrypted_bitplane = ''.join('{0:064b}'.format(msg_blocks_size))
+                        elif i == -1:
+                            # Change second bit plane to save length of message in byte
                             encrypted_bitplane = ''.join('{0:064b}'.format(msg_size))
                         else:
                             encrypted_bitplane = ''.join(input_blocks[i])
+                            bitplanes_used_msg.append(no)
                         i += 1
                 encrypted_complexity = bp.calculateComplexity(encrypted_bitplane)
                 if encrypted_complexity <= bp.alpha_threshold:
@@ -86,6 +92,7 @@ class BPCS:
                 encrypted_bitplanes.append((no, bitplane))
 
         print('Bitplanes Used:', bitplanes_used)
+        print('Bitplanes Used For Message:', bitplanes_used_msg)
         str_conj = '/'.join(conj_map)
         bin_conj = ''.join('{0:08b}'.format(ord(x), 'b') for x in str_conj)
         while len(bin_conj) % 64 != 0:
@@ -131,6 +138,7 @@ class BPCS:
             random.seed(self.get_seed(key))
             random.shuffle(bitplanes_comp)
 
+        msg_checker = 0
         for bitplane, complexity in bitplanes_comp:
             if complexity > bp.alpha_threshold:
                 if header <= 2:
@@ -153,29 +161,39 @@ class BPCS:
                     else:
                         if header in conj_map:
                             bitplane = bp.conjugate_bitplane(bitplane)
-                        msg_len = int(bitplane, 2)
-                        break
+                        if msg_checker == 0:
+                            block_len = int(bitplane, 2)
+                            msg_checker += 1
+                        else:
+                            msg_len = int(bitplane, 2)
+                            header += 1
+                            break
                 header += 1
 
         file_name = file_name.strip('\x00').strip()
         count = 0
         print ('Conjugation idx : {}'.format(conj_map))
         print ('File name       : {}'.format(file_name))
+        print ('Bitplane used : {}'.format(block_len))
         print ('Message length  : {}'.format(msg_len))
-        for bitplane, complexity in bitplanes_comp:
-            if complexity > bp.alpha_threshold and i != msg_len:
+        bitplanes_used = []
+        for no, (bitplane, complexity) in enumerate(bitplanes_comp):
+            if complexity > bp.alpha_threshold and i != block_len:
                 if count >= header:
                     if count in conj_map:
                         bitplane = bp.conjugate_bitplane(bitplane)
                     j = 0
                     while (j < len(bitplane)):
                         kar = chr(int(bitplane[j:j+8], 2))
-                        output += kar
+                        if (len(output) < msg_len):
+                            output += kar
                         j += 8
                     i += 1
+                    bitplanes_used.append(no)
                 count += 1
 
-        # output = vigenere.decrypt(key, output)
+        print('Bitplanes Used For Message:', bitplanes_used)
+        output = vigenere.decrypt(key, output)
         self.write_byte_string(file_name, output)
         return file_name
 
@@ -186,21 +204,37 @@ class BPCS:
         return seed
 
     def read_byte_string(self, filename):
-        array_of_bytes = []
-        with open(filename, 'rb') as f:
-            byte = f.read(1)
-            while byte:
-                array_of_bytes.append(byte)
-                byte = f.read(1)
-
-        temp = [int(x[0]) for x in array_of_bytes]
-        return ''.join(chr(x) for x in temp)
+        # array_of_bytes = []
+        # with open(filename, 'rb') as f:
+        #     byte = f.read(1)
+        #     while byte:
+        #         array_of_bytes.append(byte)
+        #         byte = f.read(1)
+        #
+        # temp = [int(x[0]) for x in array_of_bytes]
+        # return ''.join(chr(x) for x in temp)
+        plaintext = []
+        with open(filename,'rb') as f1:
+            while True:
+                b = f1.read(1)
+                if b:
+                    plaintext.append(chr(ord(b)))
+                else: break
+        return plaintext
 
     def write_byte_string(self, filename, output):
-        array_of_bytes = [ord(x) for x in output]
+        # array_of_bytes = [ord(x) for x in output]
+        # with open(filename, 'wb') as f:
+        #     f.write(bytearray(array_of_bytes))
+        # return output
+        list_hex = [hex(ord(c)).split('x')[-1] for c in output]
+        for i, c in enumerate(list_hex):
+            if len(c) == 1:
+                list_hex[i] = '0'+c
+        hex_string = ' '.join(list_hex)
+        bytes_result = bytes.fromhex(hex_string)
         with open(filename, 'wb') as f:
-            f.write(bytearray(array_of_bytes))
-        return output
+            f.write(bytes_result)
 
     def vigenere_encrypt(self, vigenere, input_file):
         """
@@ -232,6 +266,5 @@ class BPCS:
                 list_hex[i] = '0'+c
         hex_string = ' '.join(list_hex)
         bytes_result = bytes.fromhex(hex_string)
-        return bytes_result
-        # with open(savefile, 'wb') as f:
-        #     f.write(bytes_result)
+        with open(savefile, 'wb') as f:
+            f.write(bytes_result)
