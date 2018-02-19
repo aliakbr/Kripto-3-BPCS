@@ -22,7 +22,10 @@ class BPCS:
         # Create bitplanes of image img_file
         img_bin_ar = bp.getBinArrayTrueColor(img_file)
         blocks = bp.sliceToBlocks(img_bin_ar)
-        bitplanes_comp = bp.create_bitplanes(blocks)
+        if cgc:
+            bitplanes_comp = bp.create_bitplanes_CGC(blocks)
+        else:
+            bitplanes_comp = bp.create_bitplanes(blocks)
 
         # Split input into 8x8 blocks
         dummy_binary = "00000000"
@@ -115,6 +118,9 @@ class BPCS:
 
         # Save bitplanes as image
         blocks_encrypted = bp.bitplaneToBlocks(encrypted_bitplanes)
+        if cgc:
+            reversed_blocks_encrypted = bp.reverse_CGC(blocks_encrypted)
+            blocks_encrypted = bp.bitplaneToBlocks(reversed_blocks_encrypted)
         img_data = bp.blocksToRGBData(blocks_encrypted)
         bp.dataToImage(img_data, output_file)
 
@@ -129,7 +135,10 @@ class BPCS:
         # Create bitplanes of image img_file
         img_bin_ar = bp.getBinArrayTrueColor(img_file)
         blocks = bp.sliceToBlocks(img_bin_ar)
-        bitplanes_comp = bp.create_bitplanes(blocks)
+        if cgc:
+            bitplanes_comp = bp.create_bitplanes_CGC(blocks)
+        else:
+            bitplanes_comp = bp.create_bitplanes(blocks)
 
         header = 0
         i = 0
