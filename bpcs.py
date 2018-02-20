@@ -56,8 +56,9 @@ class BPCS:
             bin_input += dummy_binary
         input_blocks = bp.sliceStringToBlocks(bin_input)
         msg_blocks_size = len(input_blocks)
-        if (max_bitplanes - max_size_conj_map) < (msg_blocks_size  + nm_size):
-            print ("Your file/filename is too big ... can't embed message")
+        usage = msg_blocks_size  + nm_size + 6 + ((msg_blocks_size // 64) + 1)
+        if (max_bitplanes - max_size_conj_map) < (usage):
+            print ("Over payload can't embed message")
             return 0
         else:
             print ("Filename usage : {} bitplanes".format(nm_size))
