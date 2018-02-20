@@ -56,7 +56,9 @@ class BPCS:
             bin_input += dummy_binary
         input_blocks = bp.sliceStringToBlocks(bin_input)
         msg_blocks_size = len(input_blocks)
-        if (max_bitplanes - max_size_conj_map) < (msg_blocks_size  + nm_size):
+
+        usage = msg_blocks_size  + nm_size + 6 + ((msg_blocks_size // 64) + 1)
+        if (max_bitplanes - max_size_conj_map) < (usage):
             return False
         else:
             print ("Filename usage : {} bitplanes".format(nm_size))
@@ -169,7 +171,7 @@ class BPCS:
         print('Accumulate blocks to form image...')
         img_data = bp.blocksToRGBData(blocks_encrypted)
         bp.dataToImage(img_data, output_file)
-        return (max_bitplanes * 8, (conj_map_len + msg_blocks_size + nm_size + 6) * 8)
+        return (max_bitplanes * 8, usage * 8)
 
     def decrypt(self, img_file,
         key='default',
