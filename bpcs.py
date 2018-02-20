@@ -77,7 +77,6 @@ class BPCS:
             random.seed(self.get_seed(key))
             random.shuffle(bitplanes_comp)
 
-
         print ("Creating encrypted bitplane and insert message...")
         bitplanes_used = []
         bitplanes_used_msg = []
@@ -97,7 +96,7 @@ class BPCS:
                     if nm < nm_size:
                         if (f == 0):
                             encrypted_bitplane = ''.join('{0:064b}'.format(filename_size))
-                            offset = no
+                            offset = idx
                             f += 1
                         else:
                             # Second complex plane is reserved for file name
@@ -117,7 +116,7 @@ class BPCS:
                 encrypted_complexity = bp.calculateComplexity(encrypted_bitplane)
                 if encrypted_complexity <= bp.alpha_threshold:
                     encrypted_bitplane = bp.conjugate_bitplane(encrypted_bitplane)
-                    conj_map.append(no)
+                    conj_map.append(idx)
                 encrypted_bitplanes.append((no, encrypted_bitplane))
                 bitplanes_used.append(no)
             else:
