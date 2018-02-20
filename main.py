@@ -194,7 +194,7 @@ def show_error():
     messagebox.showerror("Error", message + ', '.join(fields))
 
 def transform_image(filepath):
-    img = Image.open(img_filepath).convert('RGBA')
+    img = Image.open(filepath).convert('RGBA')
     background = Image.new('RGBA', img.size, (255, 255, 255))
     alpha_composite = Image.alpha_composite(background, img)
     alpha_composite = alpha_composite.resize((PANEL_WIDTH, PANEL_HEIGHT))
