@@ -80,6 +80,8 @@ def start():
                         middle_image.image = img_output
                         status_label.configure(text='Status: Idle')
                         psnr_score.configure(text="{0:.2f}".format(psnr))
+                        capacity_score.configure(text=results[0])
+                        used_score.configure(text=results[1])
                         enable_buttons()
                 except:
                     messagebox.showerror("Error", "Something wrong happened... Try again.")
@@ -129,6 +131,9 @@ def change_action():
         middle_label.configure(text="-")
         middle_button.configure(state=tk.DISABLED)
         right_button.configure(state=tk.DISABLED, text="Save Extracted")
+        psnr_score.configure(text="")
+        capacity_score.configure(text="")
+        used_score.configure(text="")
         reset_state()
 
 def reset_state():
@@ -216,7 +221,7 @@ action = tk.IntVar()
 action.set(INSERT)
 
 cgc = tk.BooleanVar()
-cgc.set(True)
+cgc.set(False)
 
 encrypt = tk.BooleanVar()
 encrypt.set(True)
@@ -284,17 +289,47 @@ right_frame = tk.Frame(main_frame)
 psnr_label = tk.Label(right_frame,
                 text="PSNR",
                 fg = "dark green",
-                font = "Helvetica 14 bold")
+                font = "Helvetica 12 bold")
 psnr_label.pack()
 psnr_score = tk.Label(right_frame,
                 text="",
                 fg = "dark green",
-                font = "Helvetica 14 bold",
-                width = 8,
+                font = "Helvetica 12 bold",
+                width = 12,
                 height = 2,
                 borderwidth=2,
                 relief="groove")
 psnr_score.pack()
+
+capacity_label = tk.Label(right_frame,
+                text="Capacity (Bytes)",
+                fg = "dark green",
+                font = "Helvetica 12 bold")
+capacity_label.pack()
+capacity_score = tk.Label(right_frame,
+                text="",
+                fg = "dark green",
+                font = "Helvetica 12 bold",
+                width = 12,
+                height = 2,
+                borderwidth=2,
+                relief="groove")
+capacity_score.pack()
+
+used_label = tk.Label(right_frame,
+                text="Used (Bytes)",
+                fg = "dark green",
+                font = "Helvetica 12 bold")
+used_label.pack()
+used_score = tk.Label(right_frame,
+                text="",
+                fg = "dark green",
+                font = "Helvetica 12 bold",
+                width = 12,
+                height = 2,
+                borderwidth=2,
+                relief="groove")
+used_score.pack()
 
 right_label = tk.Label(right_frame,
                 text="Message File",

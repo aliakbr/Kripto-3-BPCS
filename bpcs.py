@@ -57,8 +57,7 @@ class BPCS:
         input_blocks = bp.sliceStringToBlocks(bin_input)
         msg_blocks_size = len(input_blocks)
         if (max_bitplanes - max_size_conj_map) < (msg_blocks_size  + nm_size):
-            print ("Your file/filename is too big ... can't embed message")
-            return 0
+            return False
         else:
             print ("Filename usage : {} bitplanes".format(nm_size))
             print ("Message usage : {} bitplanes".format(msg_blocks_size))
@@ -170,7 +169,7 @@ class BPCS:
         print('Accumulate blocks to form image...')
         img_data = bp.blocksToRGBData(blocks_encrypted)
         bp.dataToImage(img_data, output_file)
-        return True
+        return (max_bitplanes * 8, (conj_map_len + msg_blocks_size + nm_size + 6) * 8)
 
     def decrypt(self, img_file,
         key='default',
