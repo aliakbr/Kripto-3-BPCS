@@ -19,7 +19,7 @@
 from bpcs import BPCS
 ##
 alg = BPCS()
-treshold=0.3
+treshold=0.4
 alg.encrypt("testcase/lena.bmp", "testcase/tes.png", "output.png", sequential=True, threshold=treshold)
 print("===output===")
 print(alg.decrypt("output.png", sequential=True, threshold=treshold))
