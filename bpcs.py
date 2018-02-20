@@ -116,7 +116,9 @@ class BPCS:
                 encrypted_complexity = bp.calculateComplexity(encrypted_bitplane)
                 if encrypted_complexity <= bp.alpha_threshold:
                     encrypted_bitplane = bp.conjugate_bitplane(encrypted_bitplane)
-                    conj_map.append(idx)
+                    conj_map.append("1")
+                else:
+                    conj_map.append("0")
                 encrypted_bitplanes.append((no, encrypted_bitplane))
                 bitplanes_used.append(no)
             else:
@@ -124,11 +126,10 @@ class BPCS:
 
         # Creating conjugation map
         print('Creating conjugation map...')
-        print ("Conjugation Map : {} bitplane".format(len(conj_map)))
         print (conj_map)
-        bin_conj = ''.join('{0:016b}'.format(x, 'b') for x in conj_map)
+        bin_conj = ''.join(conj_map)
         while len(bin_conj) % 64 != 0:
-            bin_conj += dummy_binary
+            bin_conj += "0"
         input_conj = bp.sliceStringToBlocks(bin_conj)
         conj_map_len = len(input_conj)
         print ("Conjugation Map Bitplanes usage :", conj_map_len)
@@ -195,9 +196,7 @@ class BPCS:
             bitplanes_comp = bp.create_bitplanes(blocks)
 
         header = 0
-        i = 0
         conj_map = []
-        output = ""
         file_name = ""
         msg_len = 0
 
@@ -214,6 +213,7 @@ class BPCS:
         filename_size = 0
         f = 0
         offset = max_size_conj_map + 3
+        i_conj = 0
         for i, (bitplane, complexity) in enumerate(bitplanes_comp):
             if complexity > bp.alpha_threshold:
                 if i < offset:
@@ -234,15 +234,15 @@ class BPCS:
                             bitplane = bp.conjugate_bitplane(bitplane)
                             k = 0
                             while (k < len(bitplane)):
-                                idx = int(bitplane[k:k+16], 2)
                                 if (len(conj_map) < conj_map_len):
-                                    conj_map.append(idx)
-                                k += 16
+                                    conj_map.append(bitplane[k])
+                                k += 1
                             conj_map_counter += 1
                 else:
                     if (len(file_name) == 0) or (len(file_name) < filename_size):
-                        if i in conj_map:
+                        if conj_map[i_conj] == "1":
                             bitplane = bp.conjugate_bitplane(bitplane)
+                        i_conj += 1
                         if (f == 0):
                             # Read filename header
                             filename_size = int(bitplane, 2)
@@ -256,8 +256,9 @@ class BPCS:
                                     file_name += kar
                                 j += 8
                     else:
-                        if i in conj_map:
+                        if conj_map[i_conj] == "1":
                             bitplane = bp.conjugate_bitplane(bitplane)
+                        i_conj += 1
                         if msg_checker == 0:
                             block_len = int(bitplane, 2)
                             msg_checker += 1
@@ -266,20 +267,25 @@ class BPCS:
                             header += 1
                             break
                 header += 1
-
+        print (i_conj)
+        print (len(conj_map))
         file_name = file_name.strip('\x00').strip()
-        count = 0
         print ('Conjugation idx : {}'.format(conj_map))
         print ('Offset idx : {}'.format(offset))
         print ('File name       : {}'.format(file_name))
         print ('Message usage : {} bitplanes'.format(block_len))
         print ('Message length  : {} B'.format(msg_len))
+
         bitplanes_used = []
+        count = 0
+        i = 0
+        output = ""
         for no, (bitplane, complexity) in enumerate(bitplanes_comp):
             if complexity > bp.alpha_threshold and i != block_len:
                 if count >= header:
-                    if no in conj_map:
+                    if conj_map[i_conj] == "1":
                         bitplane = bp.conjugate_bitplane(bitplane)
+                    i_conj += 1
                     j = 0
                     while (j < len(bitplane)):
                         kar = chr(int(bitplane[j:j+8], 2))
@@ -303,15 +309,6 @@ class BPCS:
         return seed
 
     def read_byte_string(self, filename):
-        # array_of_bytes = []
-        # with open(filename, 'rb') as f:
-        #     byte = f.read(1)
-        #     while byte:
-        #         array_of_bytes.append(byte)
-        #         byte = f.read(1)
-        #
-        # temp = [int(x[0]) for x in array_of_bytes]
-        # return ''.join(chr(x) for x in temp)
         plaintext = []
         with open(filename,'rb') as f1:
             while True:
@@ -322,10 +319,6 @@ class BPCS:
         return plaintext
 
     def write_byte_string(self, filename, output):
-        # array_of_bytes = [ord(x) for x in output]
-        # with open(filename, 'wb') as f:
-        #     f.write(bytearray(array_of_bytes))
-        # return output
         list_hex = [hex(ord(c)).split('x')[-1] for c in output]
         for i, c in enumerate(list_hex):
             if len(c) == 1:
