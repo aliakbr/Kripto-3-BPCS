@@ -114,7 +114,7 @@ class BitPlaneProcessing:
         count = 0
         for i in range(8):
             for j in range(8):
-                if (binArray[i*8 + j] == '1'):
+                if (binArray[i*8 + j] == '0'):
                     if (i - 1 >= 0):
                         if (binArray[i*8 + j] != binArray[(i-1)*8 + j]):
                             count += 1
@@ -159,13 +159,13 @@ class BitPlaneProcessing:
                 complexity = self.calculateComplexity(bitplane)
                 output.append((bitplane, complexity))
         return output
-    
+
     def xor_bitplane(self, b, bprev):
         """
             XOR 2 bitplanes
         """
         return '{0:064b}'.format(int(b, 2) ^ int(bprev, 2))
-    
+
     def create_bitplanes_CGC(self, blocks):
         """
             Create list of bitplanes and its complexity with CGC
@@ -181,7 +181,7 @@ class BitPlaneProcessing:
                 complexity = self.calculateComplexity(bitplane)
                 output.append((bitplane, complexity))
         return output
-    
+
     def reverse_CGC(self, blocks):
         """
             Return to PBC from CGC
@@ -279,8 +279,8 @@ class BitPlaneProcessing:
     def conjugate_bitplane(self, P):
         W = ''.join(['1' for i in range(64)])
         B = ''.join(['0' for i in range(64)])
-        Wc = ''.join(['01' for i in range(32)])
-        Bc = ''.join(['10' for i in range(32)])
+        Wc = ''.join(['0101010110101010' for i in range(4)])
+        Bc = ''.join(['1010101001010101' for i in range(4)])
         def _xor(a, b):
             return '0' if a == b else '1'
         _P = ""
@@ -293,10 +293,9 @@ class BitPlaneProcessing:
         for bitplane_x, bitplane_y in zip(bitplanes_x, bitplanes_y):
             for x, y in zip(bitplane_x, bitplane_y):
                 if x != y: sum += 1
-        
+
         avg = sum / (len(bitplanes_x) * 64)
         rms = math.sqrt(avg)
         psnr = 20 * math.log10(256 / rms)
-        
+
         return psnr
-        
