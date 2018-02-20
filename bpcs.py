@@ -132,6 +132,7 @@ class BPCS:
         bitplanes_after = bp.create_bitplanes(blocks_encrypted)
         bitplanes_after = [bitplane[0] for bitplane in bitplanes_after]
         psnr = bp.calculate_psnr(bitplanes_ori, bitplanes_after)
+        print(psnr)
 
         print('Accumulate blocks to form image...')
         img_data = bp.blocksToRGBData(blocks_encrypted)
@@ -220,7 +221,7 @@ class BPCS:
                     bitplanes_used.append(no)
                 count += 1
 
-        print('Bitplanes Used For Message:', bitplanes_used)
+        # print('Bitplanes Used For Message:', bitplanes_used)
         if encrypted:
             output = vigenere.decrypt(key, output)
         self.write_byte_string(file_name, output)
