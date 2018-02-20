@@ -6,7 +6,6 @@ import numpy as np
 import math
 from PIL import Image
 
-
 class BitPlaneProcessing:
     """
         Class to process image in bitplane
@@ -175,11 +174,14 @@ class BitPlaneProcessing:
             last = ""
             for i in range(self.bits_len):
                 bitplane = self.generateBitplaneArray(block, i)
+                if i != 0:
+                    bitplane_xor = self.xor_bitplane(bitplane, last)
+                    complexity = self.calculateComplexity(bitplane_xor)
+                    output.append((bitplane_xor, complexity))
+                else:
+                    complexity = self.calculateComplexity(bitplane)
+                    output.append((bitplane, complexity))
                 last = bitplane
-                if i != 1:
-                    bitplane = self.xor_bitplane(bitplane, last)
-                complexity = self.calculateComplexity(bitplane)
-                output.append((bitplane, complexity))
         return output
 
     def reverse_CGC(self, blocks):
@@ -191,11 +193,13 @@ class BitPlaneProcessing:
             last = ""
             for i in range(self.bits_len):
                 bitplane = self.generateBitplaneArray(block, i)
-                if i != 1:
-                    bitplane = self.xor_bitplane(bitplane, last)
-                complexity = self.calculateComplexity(bitplane)
-                last = bitplane
-                output.append((bitplane, complexity))
+                if i != 0:
+                    bitplane_xor = self.xor_bitplane(bitplane, last)
+                    output.append(bitplane_xor)
+                    last = bitplane_xor
+                else:
+                    output.append(bitplane)
+                    last = bitplane
         return output
 
     def bitplaneToBlocks(self, bitplanes):

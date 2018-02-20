@@ -3,6 +3,9 @@
 """
 from bitplane import BitPlaneProcessing
 from vigenere_ascii import Vigenere_Ascii
+from PIL import Image
+import numpy as np
+import math
 import random
 import pickle
 
@@ -152,15 +155,14 @@ class BPCS:
             reversed_blocks_encrypted = bp.reverse_CGC(blocks_encrypted)
             blocks_encrypted = bp.bitplaneToBlocks(reversed_blocks_encrypted)
 
-        print('Calculate PSNR...')
+        print('Calculate bitplanes after...')
         bitplanes_after = bp.create_bitplanes(blocks_encrypted)
         bitplanes_after = [bitplane[0] for bitplane in bitplanes_after]
-        psnr = bp.calculate_psnr(bitplanes_ori, bitplanes_after)
 
         print('Accumulate blocks to form image...')
         img_data = bp.blocksToRGBData(blocks_encrypted)
         bp.dataToImage(img_data, output_file)
-        return psnr
+        return True
 
     def decrypt(self, img_file,
         key='default',
@@ -266,7 +268,7 @@ class BPCS:
                     bitplanes_used.append(no)
                 count += 1
 
-        print('Bitplanes Used For Message:', bitplanes_used)
+        # print('Bitplanes Used For Message:', bitplanes_used)
         if encrypted:
             output = vigenere.decrypt(key, output)
         self.write_byte_string(file_name, output)
@@ -343,3 +345,24 @@ class BPCS:
         bytes_result = bytes.fromhex(hex_string)
         with open(savefile, 'wb') as f:
             f.write(bytes_result)
+
+
+    def calculate_psnr(self, filename_x, filename_y):
+        # Precondition: Both files have the same dimensions
+        img_x = Image.open(filename_x).convert("RGB")
+        img_y = Image.open(filename_y).convert("RGB")
+        img_x = np.array(img_x)
+        img_y = np.array(img_y)
+
+        row, col, channel = img_x.shape
+        sum = [0, 0, 0] # [r, g, b]
+        for i in range(row):
+            for j in range(col):
+                for k in range(len(img_x[i][j])):
+                    if img_x[i][j][k] != img_y[i][j][k]:
+                        sum[k] += 1
+
+        avg = [x / (row * col) for x in sum]
+        rms = [math.sqrt(x) for x in avg]
+        psnr = [20 * math.log10(256 / x) for x in rms]
+        return np.average(psnr)

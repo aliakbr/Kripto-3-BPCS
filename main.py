@@ -64,21 +64,26 @@ def start():
     if action.get() == INSERT:
         if can_encrypt():
             def process_encrypt():
-                psnr = bpcs.encrypt(img_filepath, plain_filename, "temp.png",
-                    sequential=sequential.get(),
-                    key=key_entry.get(),
-                    cgc=cgc.get(),
-                    threshold=float(threshold_entry.get()),
-                    encrypted=encrypt.get())
-                if psnr == False:
-                    messagebox.showerror("Error", "Payload is too big.")
-                else:
-                    img_output = transform_image("temp.png")
-                    middle_image.configure(image=img_output)
-                    middle_image.image = img_output
-                    status_label.configure(text='Status: Idle')
-                    psnr_score.configure(text="{0:.2f}".format(psnr))
-                    enable_buttons()
+                try:
+                    results = bpcs.encrypt(img_filepath, plain_filename, "temp.png",
+                        sequential=sequential.get(),
+                        key=key_entry.get(),
+                        cgc=cgc.get(),
+                        threshold=float(threshold_entry.get()),
+                        encrypted=encrypt.get())
+                    if results == False:
+                        messagebox.showerror("Error", "Payload is too big.")
+                    else:
+                        img_output = transform_image("temp.png")
+                        psnr = bpcs.calculate_psnr(img_filepath, "temp.png")
+                        middle_image.configure(image=img_output)
+                        middle_image.image = img_output
+                        status_label.configure(text='Status: Idle')
+                        psnr_score.configure(text="{0:.2f}".format(psnr))
+                        enable_buttons()
+                except:
+                    messagebox.showerror("Error", "Something wrong happened... Try again.")
+                    enable_buttons_error()
 
             disable_buttons()
             status_label.configure(text='Status: Processing')
@@ -89,16 +94,20 @@ def start():
     else:
         if can_decrypt():
             def process_decrypt():
-                global plain_filepath
-                plain_filepath = bpcs.decrypt(img_filepath,
-                    sequential=sequential.get(),
-                    key=key_entry.get(),
-                    cgc=cgc.get(),
-                    threshold=float(threshold_entry.get()),
-                    encrypted=encrypt.get())
-                status_label.configure(text='Status: Idle')
-                filename_label.configure(text='Filename: ' + plain_filepath)
-                enable_buttons()
+                try:
+                    global plain_filepath
+                    plain_filepath = bpcs.decrypt(img_filepath,
+                        sequential=sequential.get(),
+                        key=key_entry.get(),
+                        cgc=cgc.get(),
+                        threshold=float(threshold_entry.get()),
+                        encrypted=encrypt.get())
+                    status_label.configure(text='Status: Idle')
+                    filename_label.configure(text='Filename: ' + plain_filepath)
+                    enable_buttons()
+                except:
+                    messagebox.showerror("Error", "Something wrong hapened... Try again.")
+                    enable_buttons_error()
 
             disable_buttons()
             status_label.configure(text='Status: Processing')
@@ -150,6 +159,13 @@ def enable_buttons():
     start_button.configure(state=tk.NORMAL)
     if action.get() == INSERT:
         middle_button.configure(state=tk.NORMAL)
+
+def enable_buttons_error():
+    global middle_button, left_button, right_button, start_button
+    left_button.configure(state=tk.NORMAL)
+    start_button.configure(state=tk.NORMAL)
+    if action.get() == INSERT:
+        right_button.configure(state=tk.NORMAL)
 
 def can_encrypt():
     global key_entry, img_filepath, plain_filepath
