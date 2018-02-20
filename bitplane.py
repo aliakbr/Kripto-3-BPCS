@@ -6,7 +6,6 @@ import numpy as np
 import math
 from PIL import Image
 
-
 class BitPlaneProcessing:
     """
         Class to process image in bitplane
@@ -159,13 +158,13 @@ class BitPlaneProcessing:
                 complexity = self.calculateComplexity(bitplane)
                 output.append((bitplane, complexity))
         return output
-    
+
     def xor_bitplane(self, b, bprev):
         """
             XOR 2 bitplanes
         """
         return '{0:064b}'.format(int(b, 2) ^ int(bprev, 2))
-    
+
     def create_bitplanes_CGC(self, blocks):
         """
             Create list of bitplanes and its complexity with CGC
@@ -184,7 +183,7 @@ class BitPlaneProcessing:
                     output.append((bitplane, complexity))
                 last = bitplane
         return output
-    
+
     def reverse_CGC(self, blocks):
         """
             Return to PBC from CGC
@@ -292,16 +291,3 @@ class BitPlaneProcessing:
         for i, c in enumerate(P):
             _P += _xor(c, Wc[i])
         return _P
-
-    def calculate_psnr(self, bitplanes_x, bitplanes_y):
-        sum = 0
-        for bitplane_x, bitplane_y in zip(bitplanes_x, bitplanes_y):
-            for x, y in zip(bitplane_x, bitplane_y):
-                if x != y: sum += 1
-        
-        avg = sum / (len(bitplanes_x) * 64)
-        rms = math.sqrt(avg)
-        psnr = 20 * math.log10(256 / rms)
-        
-        return psnr
-        
