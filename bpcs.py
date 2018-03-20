@@ -85,15 +85,16 @@ class BPCS:
         offset = 0
         f = 0
         for idx, (no, bitplane, complexity) in enumerate(bitplanes_comp):
-            if complexity > bp.alpha_threshold and (i < msg_blocks_size):
-                count += 1
-                if count < (max_size_conj_map + 3): # 2 bitplane to store conjugation map info
-                    # First complex plane is reserved for conjugation map
-                    conj_idx.append((no, idx))
-                    bitplanes_used.append(no)
-                    default_conj_bitplanes.append(bitplane)
-                    continue
-                else:
+            if idx < (max_size_conj_map + 3):
+                # 2 bitplane to store conjugation map info
+                # First complex plane is reserved for conjugation map
+                conj_idx.append((no, idx))
+                bitplanes_used.append(no)
+                default_conj_bitplanes.append(bitplane)
+                continue
+            else:
+                if complexity >= bp.alpha_threshold and (i < msg_blocks_size):
+                    count += 1
                     if nm < nm_size:
                         if (f == 0):
                             encrypted_bitplane = ''.join('{0:064b}'.format(filename_size))
@@ -114,16 +115,19 @@ class BPCS:
                             encrypted_bitplane = ''.join(input_blocks[i])
                             bitplanes_used_msg.append(no)
                         i += 1
-                encrypted_complexity = bp.calculateComplexity(encrypted_bitplane)
-                if encrypted_complexity <= bp.alpha_threshold:
-                    encrypted_bitplane = bp.conjugate_bitplane(encrypted_bitplane)
-                    conj_map.append("1")
+                    encrypted_complexity = bp.calculateComplexity(encrypted_bitplane)
+                    print (encrypted_complexity)
+                    if encrypted_complexity < bp.alpha_threshold:
+                        encrypted_bitplane = bp.conjugate_bitplane(encrypted_bitplane)
+                        encrypted_complexity = bp.calculateComplexity(encrypted_bitplane)
+                        print (encrypted_complexity)
+                        conj_map.append("1")
+                    else:
+                        conj_map.append("0")
+                    encrypted_bitplanes.append((no, encrypted_bitplane))
+                    bitplanes_used.append(no)
                 else:
-                    conj_map.append("0")
-                encrypted_bitplanes.append((no, encrypted_bitplane))
-                bitplanes_used.append(no)
-            else:
-                encrypted_bitplanes.append((no, bitplane))
+                    encrypted_bitplanes.append((no, bitplane))
 
         # Creating conjugation map
         print('Creating conjugation map...')
@@ -134,6 +138,7 @@ class BPCS:
         input_conj = bp.sliceStringToBlocks(bin_conj)
         conj_map_len = len(input_conj)
         print ("Conjugation Map Bitplanes usage :", conj_map_len)
+        print ("Conjugation Map length :", len(bin_conj))
 
         # Insert conjugation map bitplanes
         print('Inserting conjugation map...')
@@ -151,12 +156,17 @@ class BPCS:
                     conj_input_counter += 1
                 else:
                     encrypted_bitplane = default_conj_bitplanes[x]
-            encrypted_bitplane = bp.conjugate_bitplane(encrypted_bitplane)
+            if ((conj_input_counter-1) < conj_map_len):
+                    encrypted_bitplane = bp.conjugate_bitplane(encrypted_bitplane)
             encrypted_bitplanes.insert(conj_idx[x][1], (conj_idx[x][0], encrypted_bitplane))
 
         encrypted_bitplanes.sort(key=lambda x: x[0])
         encrypted_bitplanes = [x[1] for x in encrypted_bitplanes]
-
+        complex_num = 0
+        for bitplane in encrypted_bitplanes:
+            if (bp.calculateComplexity(bitplane) >= bp.alpha_threshold):
+                complex_num += 1
+        print ("Num of complex bitplanes :", complex_num)
         print('Save bitplanes as image...')
         # Save bitplanes as image
         blocks_encrypted = bp.bitplaneToBlocks(encrypted_bitplanes)
@@ -215,31 +225,33 @@ class BPCS:
         f = 0
         offset = max_size_conj_map + 3
         i_conj = 0
+        x = 0
         for i, (bitplane, complexity) in enumerate(bitplanes_comp):
-            if complexity > bp.alpha_threshold:
-                if i < offset:
-                    if header == 0:
-                        # Read block size of conjugation map
-                        bitplane = bp.conjugate_bitplane(bitplane)
-                        conj_map_block_len = int(bitplane, 2)
-                    elif header == 1:
-                        # Read size of conjugation map
-                        bitplane = bp.conjugate_bitplane(bitplane)
-                        conj_map_len = int(bitplane, 2)
-                    elif header == 2:
-                        # Read size of conjugation map
-                        bitplane = bp.conjugate_bitplane(bitplane)
-                        offset = int(bitplane, 2)
-                    else:
-                        if (conj_map_counter < conj_map_block_len):
-                            bitplane = bp.conjugate_bitplane(bitplane)
-                            k = 0
-                            while (k < len(bitplane)):
-                                if (len(conj_map) < conj_map_len):
-                                    conj_map.append(bitplane[k])
-                                k += 1
-                            conj_map_counter += 1
+            if (i < offset):
+                if x == 0:
+                    # Read block size of conjugation map
+                    bitplane = bp.conjugate_bitplane(bitplane)
+                    conj_map_block_len = int(bitplane, 2)
+                elif x == 1:
+                    # Read size of conjugation map
+                    bitplane = bp.conjugate_bitplane(bitplane)
+                    conj_map_len = int(bitplane, 2)
+                elif x == 2:
+                    # Read size of conjugation map
+                    bitplane = bp.conjugate_bitplane(bitplane)
+                    offset = int(bitplane, 2)
                 else:
+                    if (conj_map_counter < conj_map_block_len):
+                        bitplane = bp.conjugate_bitplane(bitplane)
+                        k = 0
+                        while (k < len(bitplane)):
+                            if (len(conj_map) < conj_map_len):
+                                conj_map.append(bitplane[k])
+                            k += 1
+                        conj_map_counter += 1
+                x += 1
+            else:
+                if complexity >= bp.alpha_threshold:
                     if (len(file_name) == 0) or (len(file_name) < filename_size):
                         if conj_map[i_conj] == "1":
                             bitplane = bp.conjugate_bitplane(bitplane)
@@ -267,7 +279,7 @@ class BPCS:
                             msg_len = int(bitplane, 2)
                             header += 1
                             break
-                header += 1
+                    header += 1
         print (i_conj)
         print (len(conj_map))
         file_name = file_name.strip('\x00').strip()
@@ -282,20 +294,23 @@ class BPCS:
         i = 0
         output = ""
         for no, (bitplane, complexity) in enumerate(bitplanes_comp):
-            if complexity > bp.alpha_threshold and i != block_len:
-                if count >= header:
-                    if conj_map[i_conj] == "1":
-                        bitplane = bp.conjugate_bitplane(bitplane)
-                    i_conj += 1
-                    j = 0
-                    while (j < len(bitplane)):
-                        kar = chr(int(bitplane[j:j+8], 2))
-                        if (len(output) < msg_len):
-                            output += kar
-                        j += 8
-                    i += 1
-                    bitplanes_used.append(no)
-                count += 1
+            if (no < offset):
+                continue
+            else:
+                if complexity >= bp.alpha_threshold and i != block_len:
+                    if count >= header:
+                        if conj_map[i_conj] == "1":
+                            bitplane = bp.conjugate_bitplane(bitplane)
+                        i_conj += 1
+                        j = 0
+                        while (j < len(bitplane)):
+                            kar = chr(int(bitplane[j:j+8], 2))
+                            if (len(output) < msg_len):
+                                output += kar
+                            j += 8
+                        i += 1
+                        bitplanes_used.append(no)
+                    count += 1
 
         # print('Bitplanes Used For Message:', bitplanes_used)
         if encrypted:

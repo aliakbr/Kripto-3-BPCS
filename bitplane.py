@@ -143,7 +143,7 @@ class BitPlaneProcessing:
         for block in blocks:
             for i in range(self.bits_len):
                 bit_plane = self.generateBitplaneArray(block, i)
-                if self.calculateComplexity(bit_plane) > self.alpha_threshold:
+                if self.calculateComplexity(bit_plane) >= self.alpha_threshold:
                     count += 1
         return count
 
