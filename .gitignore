@@ -3,3 +3,6 @@
 !gray.png
 *.png
 *.bmp
+build/
+dist/
+main.spec
