@@ -171,17 +171,17 @@ class BitPlaneProcessing:
         """
         output = []
         for block in blocks:
-            last = ""
             for i in range(self.bits_len):
                 bitplane = self.generateBitplaneArray(block, i)
-                if i != 0:
-                    bitplane_xor = self.xor_bitplane(bitplane, last)
-                    complexity = self.calculateComplexity(bitplane_xor)
-                    output.append((bitplane_xor, complexity))
-                else:
-                    complexity = self.calculateComplexity(bitplane)
-                    output.append((bitplane, complexity))
-                last = bitplane
+                temp = []
+                for j in range(len(bitplane)):
+                    if j == 0:
+                        temp.append(bitplane[j])
+                    else:
+                        temp.append(str(int(bitplane[j]) ^ int(bitplane[j-1])))
+                bitplane = ''.join(temp)
+                complexity = self.calculateComplexity(bitplane)
+                output.append((bitplane, complexity))
         return output
 
     def reverse_CGC(self, blocks):
@@ -193,13 +193,15 @@ class BitPlaneProcessing:
             last = ""
             for i in range(self.bits_len):
                 bitplane = self.generateBitplaneArray(block, i)
-                if i != 0:
-                    bitplane_xor = self.xor_bitplane(bitplane, last)
-                    output.append(bitplane_xor)
-                    last = bitplane_xor
-                else:
-                    output.append(bitplane)
-                    last = bitplane
+                temp = []
+                for j in range(len(bitplane)):
+                    if j == 0:
+                        last = bitplane[j]
+                        temp.append(bitplane[j])
+                    else:
+                        last = str(int(bitplane[j]) ^ int(last))
+                        temp.append(last)
+                output.append(''.join(temp))
         return output
 
     def bitplaneToBlocks(self, bitplanes):
