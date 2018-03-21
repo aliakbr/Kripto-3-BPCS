@@ -122,11 +122,9 @@ class BPCS:
                             bitplanes_used_msg.append(no)
                         i += 1
                     encrypted_complexity = bp.calculateComplexity(encrypted_bitplane)
-                    print (encrypted_complexity)
                     if encrypted_complexity < bp.alpha_threshold:
                         encrypted_bitplane = bp.conjugate_bitplane(encrypted_bitplane)
                         encrypted_complexity = bp.calculateComplexity(encrypted_bitplane)
-                        print (encrypted_complexity)
                         conj_map.append("1")
                     else:
                         conj_map.append("0")

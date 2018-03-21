@@ -310,6 +310,6 @@ class BitPlaneProcessing:
         max = 0
         for block in msg_blocks:
             complexity = self.calculateComplexity(block)
-            if complexity > max:
+            if complexity > max and complexity < self.alpha_threshold:
                 max = complexity
         return max
