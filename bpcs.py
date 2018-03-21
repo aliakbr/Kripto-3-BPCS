@@ -147,6 +147,7 @@ class BPCS:
         # Insert conjugation map bitplanes
         print('Inserting conjugation map...')
         conj_input_counter = 0
+        conjugate = True
         for x in range(len(conj_idx)):
             if (x == 0):
                 encrypted_bitplane = ''.join('{0:064b}'.format(conj_map_len))
@@ -159,9 +160,11 @@ class BPCS:
                     encrypted_bitplane = ''.join(input_conj[conj_input_counter])
                     conj_input_counter += 1
                 else:
+                    conjugate = False
                     encrypted_bitplane = default_conj_bitplanes[x]
-            if ((conj_input_counter-1) < conj_map_len):
-                    encrypted_bitplane = bp.conjugate_bitplane(encrypted_bitplane)
+            if (conjugate):
+                print (x)
+                encrypted_bitplane = bp.conjugate_bitplane(encrypted_bitplane)
             encrypted_bitplanes.insert(conj_idx[x][1], (conj_idx[x][0], encrypted_bitplane))
 
         encrypted_bitplanes.sort(key=lambda x: x[0])
