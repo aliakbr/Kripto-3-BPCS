@@ -56,9 +56,15 @@ class BPCS:
             bin_input += dummy_binary
         input_blocks = bp.sliceStringToBlocks(bin_input)
         msg_blocks_size = len(input_blocks)
-
+        msg_complexity = bp.get_max_complexity(input_blocks)
         usage = msg_blocks_size  + nm_size + 6 + ((msg_blocks_size // 64) + 1)
+        print (msg_complexity)
+        print (1-msg_complexity)
         if (max_bitplanes - max_size_conj_map) < (usage):
+            print ("Space limit exceeded")
+            return False
+        elif ((1-msg_complexity) < bp.alpha_threshold):
+            print ("Treshold is too high")
             return False
         else:
             print ("Filename usage : {} bitplanes".format(nm_size))

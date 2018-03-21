@@ -305,3 +305,11 @@ class BitPlaneProcessing:
         psnr = 20 * math.log10(256 / rms)
 
         return psnr
+
+    def get_max_complexity(self, msg_blocks):
+        max = 0
+        for block in msg_blocks:
+            complexity = self.calculateComplexity(block)
+            if complexity > max:
+                max = complexity
+        return max
